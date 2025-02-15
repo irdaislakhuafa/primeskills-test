@@ -1,0 +1,30 @@
+{
+  "Meta": {
+    "Title": "Todo List App",
+    "Description": "A Simple Todo List App",
+    "Version": "v0.0.01",
+    "Host": "127.0.0.1",
+    "BasePath": "/"
+  },
+  "Gin": {
+    "Port": "8000",
+    "TimeoutSeconds": 100,
+    "Mode": "release",
+    "Cors": {
+      "Mode": "allowall"
+    }
+  },
+  "Log": {
+    "Level": "debug"
+  },
+  "DB": {
+    "Master": {
+      "Username": "root",
+      "Password": "vznI6F2FKNwr0sdw",
+      "Host": "127.0.0.1",
+      "Port": "3306",
+      "DBName": "todo_app",
+      "Ssl": false
+    }
+  }
+}
