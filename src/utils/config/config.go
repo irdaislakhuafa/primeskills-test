@@ -43,11 +43,15 @@ type (
 		}
 	}
 
+	Secrets struct {
+		Key string
+	}
 	Config struct {
 		Meta Meta
 		Gin  Gin
 		Log  Log
 		DB   DB
+		Secrets
 	}
 )
 

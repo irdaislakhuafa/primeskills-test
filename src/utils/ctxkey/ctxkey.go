@@ -1,5 +1,7 @@
 package ctxkey
 
+type CtxKey string
+
 const (
-	USER_ID = "user_id"
+	USER_ID = CtxKey("user_id")
 )
