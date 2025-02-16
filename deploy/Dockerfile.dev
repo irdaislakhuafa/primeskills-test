@@ -1,9 +1,11 @@
 FROM golang:1.23.6-alpine AS builder
 WORKDIR /build
 COPY . .
-RUN go build -o main ./src/cmd/main.go
+RUN ls -R * && mv -v etc/cfg/conf.dev.json etc/cfg/conf.json && go build -o main ./src/cmd/main.go
 
 FROM alpine:3.21 AS runner
 WORKDIR /app
+COPY --from=builder /build/etc etc/
 COPY --from=builder /build/main .
+EXPOSE 8000
 CMD ["./main"]

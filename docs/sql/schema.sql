@@ -1,4 +1,4 @@
-CREATE DATABASE `todo_app`;
+CREATE DATABASE IF NOT EXISTS `todo_app`;
 USE `todo_app`;
 
 CREATE TABLE `users` (

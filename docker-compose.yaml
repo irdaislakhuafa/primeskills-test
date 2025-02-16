@@ -1,0 +1,26 @@
+services:
+  app-dev:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.dev
+    image: todo-app
+    container_name: todo-app
+    ports:
+      - 8000:8000
+    volumes:
+      - /tmp:/tmp
+    networks:
+      - todo-net
+    depends_on:
+      - db-dev
+  db-dev:
+    image: mysql:8.0.26
+    container_name: todo-app-db
+    networks:
+      - todo-net
+    environment:
+      - MYSQL_ROOT_PASSWORD=vznI6F2FKNwr0sdw
+      - MYSQL_DATABASE=todo_app
+
+networks:
+  todo-net: {}
