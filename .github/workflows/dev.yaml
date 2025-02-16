@@ -24,14 +24,22 @@ jobs:
    name: deploy to production
    runs-on: ubuntu-latest
    steps:
-     # - name: clone repo
-     #   uses: actions/checkout@v4
-     - id: ssh_src
-       uses: invi5H/ssh-action@v1
-       with:
-         SSH_PORT: ${{ secrets.SSH_PORT }}
-         SSH_HOST: ${{ secrets.SSH_HOST }}
-         SSH_USER: ${{ secrets.SSH_USER }}
-         SSH_KEY: ${{ secrets.SSH_KEY }}
+     - name: clone repo
+       uses: actions/checkout@v1
+     # - id: ssh_src
+     #   uses: invi5H/ssh-action@v1
+     #   with:
+     #     SSH_PORT: ${{ secrets.SSH_PORT }}
+     #     SSH_HOST: ${{ secrets.SSH_HOST }}
+     #     SSH_USER: ${{ secrets.SSH_USER }}
+     #     SSH_KEY: ${{ secrets.SSH_KEY }}
      - run: |
-        ssh ${{ steps.ssh_src.outputs.SERVER }} -- pwd
+        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/key.pem;
+        echo "
+         Host dev-server
+           HostName ${{ secrets.SSH_HOST }}
+           Port ${{ secrets.SSH_PORT }}
+           User ${{ secrets.SSH_USER }}
+           IdentityFile ~/.ssh/key.pem
+        " >> ~/.ssh/config
+        ssh -o StrictHostKeyChecking=no dev-server -- pwd
