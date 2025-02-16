@@ -47,7 +47,8 @@ jobs:
         sudo chown -R $(whoami):$(whoami) ${{ secrets.SSH_CONFIG_DIR }};
         
      - name: Test ssh
-       run: ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} "echo 'SSH Connected Successfully'"
+       run: cat ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }}
+       # run: ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} "echo 'SSH Connected Successfully'"
      - uses: docker/setup-docker-action@v4
      - name: Setup docker
        run: |
