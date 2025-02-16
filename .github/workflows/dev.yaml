@@ -28,7 +28,7 @@ jobs:
        uses: actions/checkout@v4
      - name: Setup docker
        uses: docker/setup-docker-action@v4
-     - name: Run command
+     - name: Setup ssh
        run: |
         # setup ssh env
         mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
@@ -42,8 +42,10 @@ jobs:
            IdentityFile ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }}
            StrictHostKeyChecking no
         EOF;
-
-        ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} -- whoami
-        # setup docker env
+     - name: Test ssh
+       run: ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} "echo 'SSH Connected Successfully'"
+     - uses: docker/setup-docker-action@v4
+     - name: Setup docker
+       run: |
         docker context create ${{ secrets.DOCKER_CTX }} --docker "host=ssh://${{ secrets.SSH }}@${{ secrets.SSH_HOST }}" > /dev/null;
         docker pss
