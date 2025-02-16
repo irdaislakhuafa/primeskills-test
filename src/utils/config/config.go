@@ -43,11 +43,21 @@ type (
 		}
 	}
 
+	Secrets struct {
+		Key string
+	}
+
+	Token struct {
+		ExpirationMinutes int64
+	}
+
 	Config struct {
-		Meta Meta
-		Gin  Gin
-		Log  Log
-		DB   DB
+		Meta    Meta
+		Gin     Gin
+		Log     Log
+		DB      DB
+		Secrets Secrets
+		Token   Token
 	}
 )
 

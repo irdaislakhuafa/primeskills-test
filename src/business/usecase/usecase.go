@@ -7,6 +7,7 @@ import (
 	"github.com/irdaislakhuafa/primeskills-test/src/business/usecase/todo"
 	"github.com/irdaislakhuafa/primeskills-test/src/business/usecase/todo_histories"
 	"github.com/irdaislakhuafa/primeskills-test/src/business/usecase/user"
+	"github.com/irdaislakhuafa/primeskills-test/src/utils/config"
 )
 
 type (
@@ -17,9 +18,9 @@ type (
 	}
 )
 
-func Init(d *domain.Domain, log log.Interface, v *validator.Validate) *Usecase {
+func Init(d *domain.Domain, log log.Interface, v *validator.Validate, cfg config.Config) *Usecase {
 	return &Usecase{
-		User:        user.Init(log, d, v),
+		User:        user.Init(log, d, v, cfg),
 		Todo:        todo.Init(log, v, d),
 		TodoHistory: todo_histories.Init(log, d, v),
 	}

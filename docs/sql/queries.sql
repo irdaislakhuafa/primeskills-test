@@ -17,6 +17,7 @@ SELECT
  `id`,
  `name`,
  `email`,
+ `password`,
  `created_at`,
  `created_by`,
  `updated_at`,
@@ -27,7 +28,7 @@ SELECT
 FROM
  `users`
 WHERE
- `id` = ?
+ (`id` = ? OR `email` = ?)
  AND `is_deleted` = ?;
 
 -- name: ListUser :many

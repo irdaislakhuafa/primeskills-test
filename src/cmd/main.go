@@ -45,7 +45,7 @@ func main() {
 	d := domain.Init(l, q, db)
 
 	// initialize usecase
-	u := usecase.Init(d, l, v)
+	u := usecase.Init(d, l, v, cfg)
 
 	// initialize api server
 	r := rest.Init(cfg, l, u)

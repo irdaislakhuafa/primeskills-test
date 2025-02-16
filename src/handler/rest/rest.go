@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/irdaislakhuafa/go-sdk/appcontext"
+	"github.com/irdaislakhuafa/go-sdk/auth"
 	"github.com/irdaislakhuafa/go-sdk/codes"
 	"github.com/irdaislakhuafa/go-sdk/errors"
 	"github.com/irdaislakhuafa/go-sdk/header"
@@ -20,6 +22,7 @@ import (
 	"github.com/irdaislakhuafa/primeskills-test/src/business/usecase"
 	"github.com/irdaislakhuafa/primeskills-test/src/entity"
 	"github.com/irdaislakhuafa/primeskills-test/src/utils/config"
+	"github.com/irdaislakhuafa/primeskills-test/src/utils/ctxkey"
 )
 
 var once = &sync.Once{}
@@ -106,9 +109,12 @@ func (r *rest) Register() {
 	api := r.svr.Group("/api")
 	v1 := api.Group("/v1")
 	{
-		user := v1.Group("/users")
+
+		v1.POST("/user/register", r.CreateUser)
+		v1.POST("/user/login", r.LoginUser)
+
+		user := v1.Group("/users", r.addJwtAuth)
 		{
-			user.POST("/", r.CreateUser)
 			user.POST("/:id", r.UpdateUser)
 			user.GET("/", r.ListUser)
 		}
@@ -139,6 +145,38 @@ func (r *rest) SetTimeout(ctx *gin.Context) {
 		cancel()
 	}()
 	ctx.Request = ctx.Request.WithContext(c)
+	ctx.Next()
+}
+
+func (r *rest) addJwtAuth(ctx *gin.Context) {
+	headerAuth := ctx.GetHeader(header.KeyAuthorization)
+	if headerAuth == "" {
+		r.httpRespError(ctx, errors.NewWithCode(codes.CodeUnauthorized, "Unauthorized"))
+		return
+	}
+	const BEARIER = "Bearer "
+	if !strings.HasPrefix(headerAuth, BEARIER) {
+		r.httpRespError(ctx, errors.NewWithCode(codes.CodeUnauthorized, "Unauthorized"))
+		return
+	}
+
+	token := strings.ReplaceAll(headerAuth, BEARIER, "")
+
+	authJwt := auth.InitJWT([]byte(r.cfg.Secrets.Key), &entity.AuthJWTClaims{})
+	jToken, err := authJwt.Validate(ctx, token)
+	if err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(codes.CodeUnauthorized, "%s", err.Error()))
+		return
+	}
+
+	claims, err := authJwt.ExtractClaims(ctx, jToken)
+	if err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(errors.GetCode(err), "%s", err.Error()))
+		return
+	}
+
+	r.log.Debug(ctx, claims)
+	ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), ctxkey.USER_ID, claims.UID))
 	ctx.Next()
 }
 

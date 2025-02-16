@@ -28,6 +28,10 @@ type (
 		Limit     int32  `json:"limit" form:"limit"`
 		Page      int32  `json:"page" form:"page"`
 	}
+	LoginUserParams struct {
+		Email    string `json:"email" validate:"email,max=255,min=0"`
+		Password string `json:"password" validate:"min=8,max=255"`
+	}
 
 	CreateTodoParams struct {
 		UserID      int64  `json:"user_id" validate:"required"`
