@@ -1,0 +1,30 @@
+CREATE DATABASE `todo_app`;
+USE `todo_app`;
+
+CREATE TABLE `users` (
+ `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+ `name` VARCHAR(255) NOT NULL,
+ `email` VARCHAR(255) NOT NULL UNIQUE,
+ `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ `created_by` VARCHAR(255) NOT NULL,
+ `updated_at` TIMESTAMP NULL,
+ `updated_by` VARCHAR(255) NULL,
+ `deleted_at` TIMESTAMP NULL,
+ `deleted_by` VARCHAR(255) NULL,
+ `is_deleted` TINYINT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE `todos` (
+ `id` BIGINT PRIMARY KEY AUTO_INCREMENT,
+ `user_id` BIGINT NOT NULL COMMENT 'refer to users.id',
+ `title` VARCHAR(255) NOT NULL,
+ `description` TEXT NULL,
+ `status` VARCHAR(255) NOT NULL,
+ `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ `created_by` VARCHAR(255) NOT NULL,
+ `updated_at` TIMESTAMP NULL,
+ `updated_by` VARCHAR(255) NULL,
+ `deleted_at` TIMESTAMP NULL,
+ `deleted_by` VARCHAR(255) NULL,
+ `is_deleted` TINYINT NOT NULL DEFAULT 0
+);

@@ -17,6 +17,7 @@ import (
 	"github.com/irdaislakhuafa/go-sdk/language"
 	"github.com/irdaislakhuafa/go-sdk/log"
 	"github.com/irdaislakhuafa/go-sdk/strformat"
+	"github.com/irdaislakhuafa/primeskills-test/src/business/usecase"
 	"github.com/irdaislakhuafa/primeskills-test/src/entity"
 	"github.com/irdaislakhuafa/primeskills-test/src/utils/config"
 )
@@ -31,10 +32,11 @@ type (
 		cfg config.Config
 		svr *gin.Engine
 		log log.Interface
+		u   *usecase.Usecase
 	}
 )
 
-func Init(cfg config.Config, log log.Interface) Interface {
+func Init(cfg config.Config, log log.Interface, u *usecase.Usecase) Interface {
 	r := &rest{}
 	once.Do(func() {
 		modes := map[string]string{
@@ -50,6 +52,7 @@ func Init(cfg config.Config, log log.Interface) Interface {
 			cfg: cfg,
 			svr: svr,
 			log: log,
+			u:   u,
 		}
 
 		if cfg.Gin.Cors.Mode == "allowall" {
@@ -99,6 +102,15 @@ func (r *rest) Run() {
 func (r *rest) Register() {
 	// server health and testing purpose
 	r.svr.GET("/ping", r.Ping)
+
+	api := r.svr.Group("/api")
+	v1 := api.Group("/v1")
+	{
+		user := v1.Group("/users")
+		{
+			user.POST("/", r.CreateUser)
+		}
+	}
 }
 
 func (r *rest) SetTimeout(ctx *gin.Context) {
