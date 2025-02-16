@@ -53,4 +53,5 @@ jobs:
        run: |
         docker context create ${{ secrets.DOCKER_CTX }} --docker "host=ssh://${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" > /dev/null;
         docker context use ${{ secrets.DOCKER_CTX }}
-        docker ps
+     - name: Deploy to server
+       run: docker compose --version
