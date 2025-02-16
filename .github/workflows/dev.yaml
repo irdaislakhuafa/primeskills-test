@@ -41,7 +41,7 @@ jobs:
            User ${{ secrets.SSH_USER }}
            IdentityFile ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }}
            StrictHostKeyChecking no
-        EOF;
+        EOF
      - name: Test ssh
        run: ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} "echo 'SSH Connected Successfully'"
      - uses: docker/setup-docker-action@v4
