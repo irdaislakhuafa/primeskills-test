@@ -44,5 +44,6 @@ jobs:
            User ${{ secrets.SSH_USER }}
            IdentityFile ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }}
            StrictHostKeyChecking no
-        EOF ;
-        ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} -- pwd
+        EOF
+
+        ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} -- whoami
