@@ -28,7 +28,7 @@ jobs:
        uses: actions/checkout@v4
      - run: |
         mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
-        echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets. }};
+        echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }};
         echo "
          Host ${{ secrets.SSH_HOST }}
            HostName ${{ secrets.SSH_HOST }}
@@ -36,4 +36,4 @@ jobs:
            User ${{ secrets.SSH_USER }}
            IdentityFile ~/.ssh/key.pem
         " >> ~/.ssh/config
-        ssh -o StrictHostKeyChecking=no dev-server -- pwd
+        ssh -o StrictHostKeyChecking=no -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} -- pwd
