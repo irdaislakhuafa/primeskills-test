@@ -46,7 +46,11 @@ func (u *user) Create(ctx context.Context, params validation.CreateUserParams) (
 	}
 
 	params.Password = string(pwd)
-	result, err := u.dom.User.Create(ctx, entity.CreateUserParams(params))
+	result, err := u.dom.User.Create(ctx, entity.CreateUserParams{
+		Name:     params.Name,
+		Password: params.Password,
+		Email:    params.Email,
+	})
 	if err != nil {
 		return entity.User{}, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}
@@ -77,7 +81,13 @@ func (u *user) List(ctx context.Context, params validation.ListUserParams) ([]en
 		return nil, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}
 
-	results, err := u.dom.User.List(ctx, entity.ListUserParams(params))
+	results, err := u.dom.User.List(ctx, entity.ListUserParams{
+		CONCAT:    params.Search,
+		CONCAT_2:  params.Search,
+		IsDeleted: params.IsDeleted,
+		Limit:     params.Limit,
+		Offset:    params.Page,
+	})
 	if err != nil {
 		return nil, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}

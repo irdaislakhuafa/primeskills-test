@@ -32,5 +32,20 @@ CREATE TABLE `todos` (
 ALTER TABLE `users`
  ADD COLUMN `password` VARCHAR(255) NOT NULL AFTER `email`;
 
+-- dev:pending
 UPDATE `todos` SET `description` = '' WHERE `description` IS NULL;
 ALTER TABLE `todos` MODIFY COLUMN `description` TEXT NOT NULL;
+
+-- dev:pending
+CREATE TABLE `todo_histories` (
+ `id` BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+ `todo_id` BIGINT NOT NULL COMMENT 'refer to todos.id',
+ `message` VARCHAR(255) NOT NULL,
+ `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ `created_by` VARCHAR(255) NOT NULL,
+ `updated_at` TIMESTAMP NULL,
+ `updated_by` VARCHAR(255) NULL,
+ `deleted_at` TIMESTAMP NULL,
+ `deleted_by` VARCHAR(255) NULL,
+ `is_deleted` TINYINT NOT NULL DEFAULT 0
+);

@@ -11,6 +11,28 @@ import (
 	"time"
 )
 
+const countTodoHistories = `-- name: CountTodoHistories :one
+SELECT
+ COUNT(` + "`" + `id` + "`" + `) AS total
+FROM
+ ` + "`" + `todo_histories` + "`" + `
+WHERE
+ ` + "`" + `is_deleted` + "`" + ` = ?
+ AND ` + "`" + `todo_id` + "`" + ` = ?
+`
+
+type CountTodoHistoriesParams struct {
+	IsDeleted int8  `db:"is_deleted" json:"is_deleted"`
+	TodoID    int64 `db:"todo_id" json:"todo_id"`
+}
+
+func (q *Queries) CountTodoHistories(ctx context.Context, arg CountTodoHistoriesParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countTodoHistories, arg.IsDeleted, arg.TodoID)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const createTodo = `-- name: CreateTodo :execresult
 INSERT INTO ` + "`" + `todos` + "`" + ` (
  ` + "`" + `user_id` + "`" + `,
@@ -37,6 +59,31 @@ func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (sql.Res
 		arg.Title,
 		arg.Description,
 		arg.Status,
+		arg.CreatedAt,
+		arg.CreatedBy,
+	)
+}
+
+const createTodoHistory = `-- name: CreateTodoHistory :execresult
+INSERT INTO ` + "`" + `todo_histories` + "`" + ` (
+ ` + "`" + `todo_id` + "`" + `,
+ ` + "`" + `message` + "`" + `,
+ ` + "`" + `created_at` + "`" + `,
+ ` + "`" + `created_by` + "`" + `
+) VALUES (?, ?, ?, ?)
+`
+
+type CreateTodoHistoryParams struct {
+	TodoID    int64     `db:"todo_id" json:"todo_id"`
+	Message   string    `db:"message" json:"message"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	CreatedBy string    `db:"created_by" json:"created_by"`
+}
+
+func (q *Queries) CreateTodoHistory(ctx context.Context, arg CreateTodoHistoryParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createTodoHistory,
+		arg.TodoID,
+		arg.Message,
 		arg.CreatedAt,
 		arg.CreatedBy,
 	)
@@ -258,6 +305,74 @@ func (q *Queries) ListTodo(ctx context.Context, arg ListTodoParams) ([]ListTodoR
 			&i.Title,
 			&i.Description,
 			&i.Status,
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.UpdatedAt,
+			&i.UpdatedBy,
+			&i.DeletedAt,
+			&i.DeletedBy,
+			&i.IsDeleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTodoHistories = `-- name: ListTodoHistories :many
+SELECT
+ ` + "`" + `id` + "`" + `,
+ ` + "`" + `todo_id` + "`" + `,
+ ` + "`" + `message` + "`" + `,
+ ` + "`" + `created_at` + "`" + `,
+ ` + "`" + `created_by` + "`" + `,
+ ` + "`" + `updated_at` + "`" + `,
+ ` + "`" + `updated_by` + "`" + `,
+ ` + "`" + `deleted_at` + "`" + `,
+ ` + "`" + `deleted_by` + "`" + `,
+ ` + "`" + `is_deleted` + "`" + `
+FROM
+ ` + "`" + `todo_histories` + "`" + `
+WHERE
+ ` + "`" + `todo_id` + "`" + ` = ?
+ AND ` + "`" + `is_deleted` + "`" + ` = ?
+ORDER BY ` + "`" + `id` + "`" + ` DESC
+LIMIT ?
+OFFSET ?
+`
+
+type ListTodoHistoriesParams struct {
+	TodoID    int64 `db:"todo_id" json:"todo_id"`
+	IsDeleted int8  `db:"is_deleted" json:"is_deleted"`
+	Limit     int32 `db:"limit" json:"limit"`
+	Offset    int32 `db:"offset" json:"offset"`
+}
+
+func (q *Queries) ListTodoHistories(ctx context.Context, arg ListTodoHistoriesParams) ([]TodoHistory, error) {
+	rows, err := q.db.QueryContext(ctx, listTodoHistories,
+		arg.TodoID,
+		arg.IsDeleted,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TodoHistory
+	for rows.Next() {
+		var i TodoHistory
+		if err := rows.Scan(
+			&i.ID,
+			&i.TodoID,
+			&i.Message,
 			&i.CreatedAt,
 			&i.CreatedBy,
 			&i.UpdatedAt,

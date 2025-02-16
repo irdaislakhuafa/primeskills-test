@@ -51,32 +51,8 @@ func (r *rest) UpdateUser(ctx *gin.Context) {
 }
 
 func (r *rest) ListUser(ctx *gin.Context) {
-	isDeleted, err := strconv.ParseInt(ctx.DefaultQuery("is_deleted", "0"), 10, 64)
-	if err != nil {
-		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error()))
-		return
-	}
-
-	limit, err := strconv.ParseInt(ctx.DefaultQuery("limit", "15"), 10, 64)
-	if err != nil {
-		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error()))
-		return
-	}
-
-	page, err := strconv.ParseInt(ctx.DefaultQuery("page", "0"), 10, 64)
-	if err != nil {
-		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error()))
-		return
-	}
-	search := ctx.DefaultQuery("search", "")
-	body := validation.ListUserParams{
-		CONCAT:    search,
-		CONCAT_2:  search,
-		IsDeleted: int8(isDeleted),
-		Limit:     int32(limit),
-		Offset:    int32(page),
-	}
-	if err := ctx.BindJSON(&body); err != nil {
+	body := validation.ListUserParams{Limit: 15}
+	if err := ctx.BindQuery(&body); err != nil {
 		r.httpRespError(ctx, err)
 		return
 	}
