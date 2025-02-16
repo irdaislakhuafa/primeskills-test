@@ -7,6 +7,8 @@ UPDATE `users` SET
  `name` = ?,
  `updated_at` = ?,
  `updated_by` = ?,
+ `deleted_at` = ?,
+ `deleted_by` = ?,
  `is_deleted` = ?
 WHERE `id` = ?;
 
@@ -69,6 +71,8 @@ UPDATE `todos` SET
  `status` = ?,
  `updated_at` = ?,
  `updated_by` = ?,
+ `deleted_at` = ?,
+ `deleted_by` = ?,
  `is_deleted` = ?
 WHERE `id` = ?;
 

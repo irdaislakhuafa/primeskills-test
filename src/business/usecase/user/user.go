@@ -59,7 +59,11 @@ func (u *user) Update(ctx context.Context, params validation.UpdateUserParams) (
 		return entity.User{}, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}
 
-	result, err := u.dom.User.Update(ctx, entity.UpdateUserParams(params))
+	result, err := u.dom.User.Update(ctx, entity.UpdateUserParams{
+		Name:      params.Name,
+		IsDeleted: params.IsDeleted,
+		ID:        params.ID,
+	})
 	if err != nil {
 		return entity.User{}, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}

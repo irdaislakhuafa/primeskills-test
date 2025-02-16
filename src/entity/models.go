@@ -14,7 +14,6 @@ type Todo struct {
 	// refer to users.id
 	UserID      int64          `db:"user_id" json:"user_id"`
 	Title       string         `db:"title" json:"title"`
-	Description sql.NullString `db:"description" json:"description"`
 	Status      string         `db:"status" json:"status"`
 	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
 	CreatedBy   string         `db:"created_by" json:"created_by"`
@@ -23,6 +22,7 @@ type Todo struct {
 	DeletedAt   sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	DeletedBy   sql.NullString `db:"deleted_by" json:"deleted_by"`
 	IsDeleted   int8           `db:"is_deleted" json:"is_deleted"`
+	Description string         `db:"description" json:"description"`
 }
 
 type User struct {

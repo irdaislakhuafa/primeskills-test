@@ -19,6 +19,7 @@ type (
 	Interface interface {
 		Create(ctx context.Context, params entity.CreateTodoParams) (entity.Todo, error)
 		List(ctx context.Context, params entity.ListTodoParams) ([]entity.Todo, error)
+		Update(ctx context.Context, params entity.UpdateTodoParams) (entity.Todo, error)
 	}
 	todo struct {
 		log     log.Interface
@@ -108,4 +109,69 @@ func (t *todo) List(ctx context.Context, params entity.ListTodoParams) ([]entity
 	}
 
 	return results, nil
+}
+
+func (t *todo) Update(ctx context.Context, params entity.UpdateTodoParams) (entity.Todo, error) {
+	tx, err := t.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLTxBegin, "%s", err.Error())
+	}
+	defer tx.Rollback()
+
+	queries := t.queries.WithTx(tx)
+
+	params.UpdatedAt = sql.NullTime{
+		Valid: true,
+		Time:  time.Now(),
+	}
+	params.UpdatedBy = sql.NullString{
+		Valid:  true,
+		String: convert.ToSafeValue[string](ctx.Value(ctxkey.USER_ID)),
+	}
+	if params.IsDeleted == 1 {
+		params.DeletedAt = sql.NullTime{
+			Valid: true,
+			Time:  time.Now(),
+		}
+		params.DeletedBy = sql.NullString{
+			Valid:  true,
+			String: convert.ToSafeValue[string](ctx.Value(ctxkey.USER_ID)),
+		}
+	}
+
+	prev, err := queries.GetOneTodo(ctx, entity.GetOneTodoParams{
+		ID:        params.ID,
+		IsDeleted: params.IsDeleted,
+	})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return entity.Todo{}, errors.NewWithCode(codes.CodeBadRequest, "Todo not found!")
+		}
+		return entity.Todo{}, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
+	}
+
+	_, err = queries.UpdateTodo(ctx, params)
+	if err != nil {
+		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLTxExec, "%s", err.Error())
+	}
+
+	if err := tx.Commit(); err != nil {
+		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLTxCommit, "%s", err.Error())
+	}
+
+	result := entity.Todo{
+		ID:          params.ID,
+		UserID:      prev.UserID,
+		Title:       params.Title,
+		Description: params.Description,
+		Status:      params.Status,
+		CreatedAt:   prev.CreatedAt,
+		CreatedBy:   prev.CreatedBy,
+		UpdatedAt:   params.UpdatedAt,
+		UpdatedBy:   params.UpdatedBy,
+		DeletedAt:   params.DeletedAt,
+		DeletedBy:   params.DeletedBy,
+		IsDeleted:   params.IsDeleted,
+	}
+	return result, nil
 }

@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"database/sql"
 	"reflect"
 	"time"
 
@@ -21,19 +20,17 @@ type (
 		CreatedBy string    `db:"created_by" json:"created_by"`
 	}
 	UpdateUserParams struct {
-		Name      string         `db:"name" json:"name" validate:"required,min=1,max=255"`
-		UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
-		UpdatedBy sql.NullString `db:"updated_by" json:"updated_by"`
-		IsDeleted int8           `db:"is_deleted" json:"is_deleted" validate:"number"`
-		ID        int64          `db:"id" json:"id" validate:"required,number"`
+		Name      string `db:"name" json:"name" validate:"required,min=1,max=255"`
+		IsDeleted int8   `db:"is_deleted" json:"is_deleted" validate:"number"`
+		ID        int64  `db:"id" json:"id" validate:"required,number"`
 	}
 	ListUserParams entity.ListUserParams
 
 	CreateTodoParams struct {
-		UserID      int64   `db:"user_id" json:"user_id" validate:"required"`
-		Title       string  `db:"title" json:"title" validate:"required,min=1,max=255"`
-		Description *string `db:"description" json:"description" validate:""`
-		Status      string  `db:"status" json:"status" validate:"required,oneof=complete cancel hold todo"`
+		UserID      int64  `db:"user_id" json:"user_id" validate:"required"`
+		Title       string `db:"title" json:"title" validate:"required,min=1,max=255"`
+		Description string `db:"description" json:"description" validate:""`
+		Status      string `db:"status" json:"status" validate:"required,oneof=complete cancel hold todo"`
 	}
 
 	ListTodoParams struct {
@@ -43,6 +40,14 @@ type (
 		Page      int64  `json:"page" validate:""`
 		Limit     int64  `json:"limit" validate:""`
 		IsDeleted int8   `json:"is_deleted" validate:""`
+	}
+
+	UpdateTodoParams struct {
+		Title       string `db:"title" json:"title"`
+		Description string `db:"description" json:"description"`
+		Status      string `db:"status" json:"status"`
+		IsDeleted   int8   `db:"is_deleted" json:"is_deleted"`
+		ID          int64  `db:"id" json:"id"`
 	}
 )
 
