@@ -31,12 +31,9 @@ func Init(log log.Interface, db *sql.DB, queries *entity.Queries) Interface {
 }
 
 func (th *todoHistory) List(ctx context.Context, params entity.ListTodoHistoriesParams) ([]entity.TodoHistory, entity.Pagination, error) {
-	rows, err := th.queries.ListTodoHistories(ctx, entity.ListTodoHistoriesParams{
-		TodoID:    params.TodoID,
-		IsDeleted: params.IsDeleted,
-		Limit:     params.Limit,
-		Offset:    params.Offset * 2,
-	})
+	args := params
+	args.Offset *= args.Limit
+	rows, err := th.queries.ListTodoHistories(ctx, args)
 	if err != nil {
 		return nil, entity.Pagination{}, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
 	}
@@ -57,7 +54,7 @@ func (th *todoHistory) List(ctx context.Context, params entity.ListTodoHistories
 		})
 	}
 
-	totalCount, err := th.queries.CountTodoHistories(ctx, entity.CountTodoHistoriesParams{
+	total, err := th.queries.CountTodoHistories(ctx, entity.CountTodoHistoriesParams{
 		IsDeleted: params.IsDeleted,
 		TodoID:    params.TodoID,
 	})
@@ -65,25 +62,6 @@ func (th *todoHistory) List(ctx context.Context, params entity.ListTodoHistories
 		return nil, entity.Pagination{}, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
 	}
 
-	// p := entity.Pagination{
-	// 	// CurrentPage:     int(params.Offset),
-	// 	// CurrentElements: int(params.Limit),
-	// 	// TotalPages:      int(totalCount / int64(params.Limit)),
-	// 	// TotalElements:   int(totalCount),
-	// 	SortBy:      []string{"id DESC"},
-	// 	CursorStart: new(string),
-	// 	CursorEnd:   new(string),
-	// }
-	// p := entity.Pagination{
-	// 	CurrentPage:     int(params.Offset),
-	// 	CurrentElements: int(params.Limit),
-	// 	TotalPages:      int(math.Ceil(float64(totalCount) / float64(params.Limit))), // Perbaikan pembulatan
-	// 	TotalElements:   int(totalCount),
-	// 	SortBy:          []string{"id desc"}, // Perbaikan format sorting
-	// 	CursorStart:     nil,                 // Bisa diisi jika ada nilai awal
-	// 	CursorEnd:       nil,                 // Bisa diisi jika ada nilai akhir
-	// }
-
-	p := entity.GenPagination(int(params.Offset), int(params.Limit), int(totalCount))
+	p := entity.GenPagination(int(params.Offset), len(results), int(total))
 	return results, p, nil
 }

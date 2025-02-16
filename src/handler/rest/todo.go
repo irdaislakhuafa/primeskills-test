@@ -55,13 +55,13 @@ func (r *rest) ListTodo(ctx *gin.Context) {
 		IsDeleted: int8(isDeleted),
 	}
 
-	results, err := r.u.Todo.List(ctx, query)
+	results, pag, err := r.u.Todo.List(ctx, query)
 	if err != nil {
 		r.httpRespError(ctx, err)
 		return
 	}
 
-	r.httpRespSuccess(ctx, codes.CodeSuccess, results, nil)
+	r.httpRespSuccess(ctx, codes.CodeSuccess, results, &pag)
 }
 
 func (r *rest) UpdateTodo(ctx *gin.Context) {
