@@ -4,7 +4,7 @@ on:
    # tags:
    #   - v*
    branches:
-     - master
+     - ci/cd
 jobs:
   test:
    name: Testing code
@@ -24,22 +24,36 @@ jobs:
    name: deploy to production
    runs-on: ubuntu-latest
    steps:
-     - name: clone repo
-       uses: actions/checkout@v1
-     # - id: ssh_src
-     #   uses: invi5H/ssh-action@v1
-     #   with:
-     #     SSH_PORT: ${{ secrets.SSH_PORT }}
-     #     SSH_HOST: ${{ secrets.SSH_HOST }}
-     #     SSH_USER: ${{ secrets.SSH_USER }}
-     #     SSH_KEY: ${{ secrets.SSH_KEY }}
-     - run: |
-        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/key.pem;
-        echo "
-         Host dev-server
+     - name: Clone repo
+       uses: actions/checkout@v4
+     - name: Setup docker
+       uses: docker/setup-docker-action@v4
+     - name: Setup ssh
+       run: |
+        # setup ssh env
+        mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
+        echo "${{ secrets.SSH_KEY }}" | base64 -d > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
+        cat <<EOF > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }}
+         Host ${{ secrets.SSH_HOST }}
            HostName ${{ secrets.SSH_HOST }}
            Port ${{ secrets.SSH_PORT }}
            User ${{ secrets.SSH_USER }}
-           IdentityFile ~/.ssh/key.pem
-        " >> ~/.ssh/config
-        ssh -o StrictHostKeyChecking=no dev-server -- pwd
+           IdentityFile ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }}
+           StrictHostKeyChecking no
+        EOF
+     - name: Setup ssh permission
+       run: |
+        sudo chmod -R 600 ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
+        sudo chown -R $(whoami):$(whoami) ${{ secrets.SSH_CONFIG_DIR }};
+        
+     - name: Test ssh
+       run: ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} "echo 'SSH Connected Successfully'"
+     - uses: docker/setup-buildx-action@v3
+     - name: Setup docker
+       run: |
+        docker context create ${{ secrets.DOCKER_CTX }} --docker "host=ssh://${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" > /dev/null;
+        docker context use ${{ secrets.DOCKER_CTX }}
+     - name: Deploy to server
+       run: |
+         docker compose up app-dev -d --build
+         docker system prune -f

@@ -21,7 +21,7 @@
     "Master": {
       "Username": "root",
       "Password": "vznI6F2FKNwr0sdw",
-      "Host": "127.0.0.1",
+      "Host": "todo-app-db",
       "Port": "3306",
       "DBName": "todo_app",
       "Ssl": false
