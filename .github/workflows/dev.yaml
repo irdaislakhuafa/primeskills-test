@@ -42,6 +42,8 @@ jobs:
            IdentityFile ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }}
            StrictHostKeyChecking no
         EOF
+     - name: test sudo
+       run: sudo whoami
      - name: Test ssh
        run: ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} "echo 'SSH Connected Successfully'"
      - uses: docker/setup-docker-action@v4
