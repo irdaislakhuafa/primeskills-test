@@ -27,7 +27,6 @@ jobs:
      - name: clone repo
        uses: actions/checkout@v4
      - run: |
-        pwd
         mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
         chown -R $(whoami):$(whoami) ${{ secrets.SSH_CONFIG_DIR }};
         echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
