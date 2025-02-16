@@ -17,7 +17,7 @@ type (
 	Interface interface {
 		Create(ctx context.Context, params entity.CreateUserParams) (entity.User, error)
 		Update(ctx context.Context, params entity.UpdateUserParams) (entity.User, error)
-		List(ctx context.Context, params entity.ListUserParams) ([]entity.User, error)
+		List(ctx context.Context, params entity.ListUserParams) ([]entity.User, entity.Pagination, error)
 	}
 	user struct {
 		log     log.Interface
@@ -119,10 +119,10 @@ func (u *user) Update(ctx context.Context, params entity.UpdateUserParams) (enti
 	}, nil
 }
 
-func (u *user) List(ctx context.Context, params entity.ListUserParams) ([]entity.User, error) {
+func (u *user) List(ctx context.Context, params entity.ListUserParams) ([]entity.User, entity.Pagination, error) {
 	rows, err := u.queries.ListUser(ctx, params)
 	if err != nil {
-		return nil, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
+		return nil, entity.Pagination{}, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
 	}
 
 	results := []entity.User{}
@@ -141,5 +141,15 @@ func (u *user) List(ctx context.Context, params entity.ListUserParams) ([]entity
 		})
 	}
 
-	return results, nil
+	total, err := u.queries.CountUser(ctx, entity.CountUserParams{
+		CONCAT:    params.CONCAT,
+		CONCAT_2:  params.CONCAT_2,
+		IsDeleted: params.IsDeleted,
+	})
+	if err != nil {
+		return nil, entity.Pagination{}, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
+	}
+
+	p := entity.GenPagination(int(params.Offset), len(results), int(total))
+	return results, p, nil
 }

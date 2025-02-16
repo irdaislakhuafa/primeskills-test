@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/irdaislakhuafa/go-sdk/codes"
 	"github.com/irdaislakhuafa/go-sdk/errors"
-	"github.com/irdaislakhuafa/primeskills-test/src/entity"
 	"github.com/irdaislakhuafa/primeskills-test/src/validation"
 )
 
@@ -57,11 +56,11 @@ func (r *rest) ListUser(ctx *gin.Context) {
 		return
 	}
 
-	results, err := r.u.User.List(ctx, body)
+	results, pag, err := r.u.User.List(ctx, body)
 	if err != nil {
 		r.httpRespError(ctx, err)
 		return
 	}
 
-	r.httpRespSuccess(ctx, codes.CodeSuccess, results, &entity.Pagination{})
+	r.httpRespSuccess(ctx, codes.CodeSuccess, results, &pag)
 }

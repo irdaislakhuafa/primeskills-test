@@ -12,6 +12,7 @@ import (
 type Querier interface {
 	CountTodo(ctx context.Context, arg CountTodoParams) (int64, error)
 	CountTodoHistories(ctx context.Context, arg CountTodoHistoriesParams) (int64, error)
+	CountUser(ctx context.Context, arg CountUserParams) (int64, error)
 	CreateTodo(ctx context.Context, arg CreateTodoParams) (sql.Result, error)
 	CreateTodoHistory(ctx context.Context, arg CreateTodoHistoryParams) (sql.Result, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error)
