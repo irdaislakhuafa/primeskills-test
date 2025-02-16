@@ -24,17 +24,27 @@ jobs:
    name: deploy to production
    runs-on: ubuntu-latest
    steps:
-     - name: clone repo
+     - name: Clone repo
        uses: actions/checkout@v4
-     - run: |
-        mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
-        echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
-        chmod -R 600 ${{ secrets.SSH_CONFIG_DIR }};
-        echo "
-         Host ${{ secrets.SSH_HOST }}
-           HostName ${{ secrets.SSH_HOST }}
-           Port ${{ secrets.SSH_PORT }}
-           User ${{ secrets.SSH_USER }}
-           IdentityFile ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }}
-        " >> ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }};
-        ssh -o StrictHostKeyChecking=no -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} -- pwd
+     - name: Setup ssh
+       uses: MrSquaare/ssh-setup-action@v3
+       with:
+         host: ${{ secrets.SSH_HOST }}
+         port: ${{ secrets.SSH_PORT }}
+         private-key: ${{ secrets.SSH_KEY }}
+         private-key-name: github
+     - name: Run command
+       run: |
+         ssh ${{ secrets.SSH_HOST }} -- pwd
+     # - run: |
+     #    mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
+     #    echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
+     #    chmod -R 600 ${{ secrets.SSH_CONFIG_DIR }};
+     #    echo "
+     #     Host ${{ secrets.SSH_HOST }}
+     #       HostName ${{ secrets.SSH_HOST }}
+     #       Port ${{ secrets.SSH_PORT }}
+     #       User ${{ secrets.SSH_USER }}
+     #       IdentityFile ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }}
+     #    " >> ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }};
+     #    ssh -o StrictHostKeyChecking=no -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} -- pwd
