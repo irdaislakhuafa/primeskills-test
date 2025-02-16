@@ -11,6 +11,37 @@ import (
 	"time"
 )
 
+const createTodo = `-- name: CreateTodo :execresult
+INSERT INTO ` + "`" + `todos` + "`" + ` (
+ ` + "`" + `user_id` + "`" + `,
+ ` + "`" + `title` + "`" + `,
+ ` + "`" + `description` + "`" + `,
+ ` + "`" + `status` + "`" + `,
+ ` + "`" + `created_at` + "`" + `,
+ ` + "`" + `created_by` + "`" + `
+) VALUES (?, ?, ?, ?, ?, ?)
+`
+
+type CreateTodoParams struct {
+	UserID      int64          `db:"user_id" json:"user_id"`
+	Title       string         `db:"title" json:"title"`
+	Description sql.NullString `db:"description" json:"description"`
+	Status      string         `db:"status" json:"status"`
+	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
+	CreatedBy   string         `db:"created_by" json:"created_by"`
+}
+
+func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createTodo,
+		arg.UserID,
+		arg.Title,
+		arg.Description,
+		arg.Status,
+		arg.CreatedAt,
+		arg.CreatedBy,
+	)
+}
+
 const createUser = `-- name: CreateUser :execresult
 INSERT INTO ` + "`" + `users` + "`" + ` (` + "`" + `name` + "`" + `, ` + "`" + `password` + "`" + `, ` + "`" + `email` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `created_by` + "`" + `)
 VALUES (?, ?, ?, ?, ?)
@@ -32,6 +63,52 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 		arg.CreatedAt,
 		arg.CreatedBy,
 	)
+}
+
+const getOneTodo = `-- name: GetOneTodo :one
+SELECT
+ ` + "`" + `id` + "`" + `,
+ ` + "`" + `user_id` + "`" + `,
+ ` + "`" + `title` + "`" + `,
+ ` + "`" + `description` + "`" + `,
+ ` + "`" + `status` + "`" + `,
+ ` + "`" + `created_at` + "`" + `,
+ ` + "`" + `created_by` + "`" + `,
+ ` + "`" + `updated_at` + "`" + `,
+ ` + "`" + `updated_by` + "`" + `,
+ ` + "`" + `deleted_at` + "`" + `,
+ ` + "`" + `deleted_by` + "`" + `,
+ ` + "`" + `is_deleted` + "`" + `
+FROM
+ ` + "`" + `todos` + "`" + `
+WHERE
+ ` + "`" + `id` + "`" + ` = ?
+ AND ` + "`" + `is_deleted` + "`" + ` = ?
+`
+
+type GetOneTodoParams struct {
+	ID        int64 `db:"id" json:"id"`
+	IsDeleted int8  `db:"is_deleted" json:"is_deleted"`
+}
+
+func (q *Queries) GetOneTodo(ctx context.Context, arg GetOneTodoParams) (Todo, error) {
+	row := q.db.QueryRowContext(ctx, getOneTodo, arg.ID, arg.IsDeleted)
+	var i Todo
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Description,
+		&i.Status,
+		&i.CreatedAt,
+		&i.CreatedBy,
+		&i.UpdatedAt,
+		&i.UpdatedBy,
+		&i.DeletedAt,
+		&i.DeletedBy,
+		&i.IsDeleted,
+	)
+	return i, err
 }
 
 const getOneUser = `-- name: GetOneUser :one
@@ -87,6 +164,79 @@ func (q *Queries) GetOneUser(ctx context.Context, arg GetOneUserParams) (GetOneU
 		&i.IsDeleted,
 	)
 	return i, err
+}
+
+const listTodo = `-- name: ListTodo :many
+SELECT
+ ` + "`" + `id` + "`" + `,
+ ` + "`" + `user_id` + "`" + `,
+ ` + "`" + `title` + "`" + `,
+ ` + "`" + `description` + "`" + `,
+ ` + "`" + `status` + "`" + `,
+ ` + "`" + `created_at` + "`" + `,
+ ` + "`" + `created_by` + "`" + `,
+ ` + "`" + `updated_at` + "`" + `,
+ ` + "`" + `updated_by` + "`" + `,
+ ` + "`" + `deleted_at` + "`" + `,
+ ` + "`" + `deleted_by` + "`" + `,
+ ` + "`" + `is_deleted` + "`" + `
+FROM
+ ` + "`" + `todos` + "`" + `
+WHERE
+  ` + "`" + `user_id` + "`" + ` = ?
+  AND ` + "`" + `status` + "`" + ` LIKE ?
+  AND (
+   ` + "`" + `title` + "`" + ` LIKE CONCAT("%", ?, "%")
+   OR ` + "`" + `description` + "`" + ` LIKE CONCAT("%", ?, "%") 
+  )
+`
+
+type ListTodoParams struct {
+	UserID   int64       `db:"user_id" json:"user_id"`
+	Status   string      `db:"status" json:"status"`
+	CONCAT   interface{} `db:"CONCAT" json:"CONCAT"`
+	CONCAT_2 interface{} `db:"CONCAT_2" json:"CONCAT_2"`
+}
+
+func (q *Queries) ListTodo(ctx context.Context, arg ListTodoParams) ([]Todo, error) {
+	rows, err := q.db.QueryContext(ctx, listTodo,
+		arg.UserID,
+		arg.Status,
+		arg.CONCAT,
+		arg.CONCAT_2,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Todo
+	for rows.Next() {
+		var i Todo
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.UpdatedAt,
+			&i.UpdatedBy,
+			&i.DeletedAt,
+			&i.DeletedBy,
+			&i.IsDeleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listUser = `-- name: ListUser :many
@@ -173,6 +323,39 @@ func (q *Queries) ListUser(ctx context.Context, arg ListUserParams) ([]ListUserR
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateTodo = `-- name: UpdateTodo :execresult
+UPDATE ` + "`" + `todos` + "`" + ` SET
+ ` + "`" + `title` + "`" + ` = ?,
+ ` + "`" + `description` + "`" + ` = ?,
+ ` + "`" + `status` + "`" + ` = ?,
+ ` + "`" + `updated_at` + "`" + ` = ?,
+ ` + "`" + `updated_by` + "`" + ` = ?,
+ ` + "`" + `is_deleted` + "`" + ` = ?
+WHERE ` + "`" + `id` + "`" + ` = ?
+`
+
+type UpdateTodoParams struct {
+	Title       string         `db:"title" json:"title"`
+	Description sql.NullString `db:"description" json:"description"`
+	Status      string         `db:"status" json:"status"`
+	UpdatedAt   sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy   sql.NullString `db:"updated_by" json:"updated_by"`
+	IsDeleted   int8           `db:"is_deleted" json:"is_deleted"`
+	ID          int64          `db:"id" json:"id"`
+}
+
+func (q *Queries) UpdateTodo(ctx context.Context, arg UpdateTodoParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updateTodo,
+		arg.Title,
+		arg.Description,
+		arg.Status,
+		arg.UpdatedAt,
+		arg.UpdatedBy,
+		arg.IsDeleted,
+		arg.ID,
+	)
 }
 
 const updateUser = `-- name: UpdateUser :execresult
