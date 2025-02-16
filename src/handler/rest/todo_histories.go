@@ -8,10 +8,16 @@ import (
 )
 
 func (r *rest) ListTodoHistories(ctx *gin.Context) {
-	query := validation.ListTodoHistories{}
+	query := validation.ListTodoHistories{Limit: 15}
 	if err := ctx.BindQuery(&query); err != nil {
 		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error()))
 		return
 	}
-	r.httpRespSuccess(ctx, codes.CodeSuccess, query, nil)
+
+	results, err := r.u.TodoHistory.List(ctx, query)
+	if err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(errors.GetCode(err), "%s", err.Error()))
+		return
+	}
+	r.httpRespSuccess(ctx, codes.CodeSuccess, results, nil)
 }

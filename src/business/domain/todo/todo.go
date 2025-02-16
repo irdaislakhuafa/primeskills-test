@@ -186,16 +186,23 @@ func (t *todo) Update(ctx context.Context, params entity.UpdateTodoParams) (enti
 	}
 
 	if prev.Title != params.Title {
-		history.Message = strformat.TWE("Rename title {{ .Prev.Title }} to {{ .New.Title }}", historyParams)
+		history.Message = strformat.TWE("Rename title '{{ .Prev.Title }}' to '{{ .New.Title }}'", historyParams)
 		histories = append(histories, history)
 	}
 
 	if prev.Description != params.Description {
 		history.Message = strformat.TWE("Change description of '{{ .New.Title }}'", historyParams)
+		histories = append(histories, history)
+	}
+
+	if prev.Status != params.Status {
+		history.Message = strformat.TWE("Change status from '{{ .Prev.Status }}' to {{ .New.Status }}", historyParams)
+		histories = append(histories, history)
 	}
 
 	if prev.IsDeleted == 0 && params.IsDeleted == 1 {
 		history.Message = strformat.TWE("Delete todo '{{ .Prev.Title }}'", historyParams)
+		histories = append(histories, history)
 	}
 
 	for _, h := range histories {
