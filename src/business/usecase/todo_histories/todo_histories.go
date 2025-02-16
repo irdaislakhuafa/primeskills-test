@@ -14,7 +14,7 @@ import (
 
 type (
 	Interface interface {
-		List(ctx context.Context, params validation.ListTodoHistories) ([]entity.TodoHistory, error)
+		List(ctx context.Context, params validation.ListTodoHistories) ([]entity.TodoHistory, entity.Pagination, error)
 	}
 
 	todoHistory struct {
@@ -32,21 +32,21 @@ func Init(log log.Interface, dom *domain.Domain, val *validator.Validate) Interf
 	}
 }
 
-func (th *todoHistory) List(ctx context.Context, params validation.ListTodoHistories) ([]entity.TodoHistory, error) {
+func (th *todoHistory) List(ctx context.Context, params validation.ListTodoHistories) ([]entity.TodoHistory, entity.Pagination, error) {
 	if err := th.val.StructCtx(ctx, params); err != nil {
 		err = validation.ExtractError(err, params)
-		return nil, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
+		return nil, entity.Pagination{}, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
 	}
 
-	results, err := th.dom.TodoHistory.List(ctx, entity.ListTodoHistoriesParams{
+	results, pag, err := th.dom.TodoHistory.List(ctx, entity.ListTodoHistoriesParams{
 		TodoID:    params.TodoID,
 		IsDeleted: params.IsDeleted,
 		Limit:     int32(params.Limit),
 		Offset:    int32(params.Page),
 	})
 	if err != nil {
-		return nil, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
+		return nil, entity.Pagination{}, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}
 
-	return results, nil
+	return results, pag, nil
 }

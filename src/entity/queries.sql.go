@@ -11,6 +11,28 @@ import (
 	"time"
 )
 
+const countTodoHistories = `-- name: CountTodoHistories :one
+SELECT
+ COUNT(` + "`" + `id` + "`" + `) AS total
+FROM
+ ` + "`" + `todo_histories` + "`" + `
+WHERE
+ ` + "`" + `is_deleted` + "`" + ` = ?
+ AND ` + "`" + `todo_id` + "`" + ` = ?
+`
+
+type CountTodoHistoriesParams struct {
+	IsDeleted int8  `db:"is_deleted" json:"is_deleted"`
+	TodoID    int64 `db:"todo_id" json:"todo_id"`
+}
+
+func (q *Queries) CountTodoHistories(ctx context.Context, arg CountTodoHistoriesParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countTodoHistories, arg.IsDeleted, arg.TodoID)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const createTodo = `-- name: CreateTodo :execresult
 INSERT INTO ` + "`" + `todos` + "`" + ` (
  ` + "`" + `user_id` + "`" + `,

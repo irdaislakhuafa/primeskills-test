@@ -1,5 +1,7 @@
 package entity
 
+import "math"
+
 type (
 	HTTPMessage struct {
 		Title string `json:"title"`
@@ -38,3 +40,27 @@ type (
 		Pagination *Pagination `json:"pagination,omitempty"`
 	}
 )
+
+func GenPagination(page, limit, totalItems int) Pagination {
+	if limit <= 0 {
+		limit = 15
+	}
+	if page < 0 {
+		page = 0
+	}
+
+	if limit > totalItems {
+		limit = totalItems
+	}
+
+	totalPages := math.Ceil(float64(totalItems) / float64(limit))
+	return Pagination{
+		CurrentPage:     page,
+		CurrentElements: limit,
+		TotalPages:      int(totalPages) - 1,
+		TotalElements:   totalItems,
+		SortBy:          []string{"id DESC"},
+		CursorStart:     new(string),
+		CursorEnd:       new(string),
+	}
+}

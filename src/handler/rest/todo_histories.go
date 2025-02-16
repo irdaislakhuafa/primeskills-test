@@ -14,10 +14,10 @@ func (r *rest) ListTodoHistories(ctx *gin.Context) {
 		return
 	}
 
-	results, err := r.u.TodoHistory.List(ctx, query)
+	results, pag, err := r.u.TodoHistory.List(ctx, query)
 	if err != nil {
 		r.httpRespError(ctx, errors.NewWithCode(errors.GetCode(err), "%s", err.Error()))
 		return
 	}
-	r.httpRespSuccess(ctx, codes.CodeSuccess, results, nil)
+	r.httpRespSuccess(ctx, codes.CodeSuccess, results, &pag)
 }

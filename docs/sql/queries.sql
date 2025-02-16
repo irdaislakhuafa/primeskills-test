@@ -153,3 +153,12 @@ ORDER BY `id` DESC
 LIMIT ?
 OFFSET ?;
 
+-- name: CountTodoHistories :one
+SELECT
+ COUNT(`id`) AS total
+FROM
+ `todo_histories`
+WHERE
+ `is_deleted` = ?
+ AND `todo_id` = ?;
+
