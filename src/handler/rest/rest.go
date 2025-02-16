@@ -116,6 +116,7 @@ func (r *rest) Register() {
 		todo := v1.Group("/todos")
 		{
 			todo.POST("/", r.CreateTodo)
+			todo.GET("/", r.ListTodo)
 		}
 	}
 }
