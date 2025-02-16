@@ -30,6 +30,7 @@ jobs:
        uses: docker/setup-docker-action@v4
      - name: Run command
        run: |
+        # setup ssh env
         mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
         echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
         chmod -R 600 ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
@@ -43,5 +44,6 @@ jobs:
         EOF;
 
         ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} -- whoami
-
-        docker --version
+        # setup docker env
+        docker context create ${{ secrets.DOCKER_CTX }} --docker "host=ssh://${{ secrets.SSH }}@${{ secrets.SSH_HOST }}" > /dev/null;
+        docker ps
