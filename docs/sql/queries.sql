@@ -123,3 +123,33 @@ WHERE
 ORDER BY `id` DESC
 LIMIT ?
 OFFSET ?;
+
+-- name: CreateTodoHistory :execresult
+INSERT INTO `todo_histories` (
+ `todo_id`,
+ `message`,
+ `created_at`,
+ `created_by`
+) VALUES (?, ?, ?, ?);
+
+-- name: ListTodoHistories :many
+SELECT
+ `id`,
+ `todo_id`,
+ `message`,
+ `created_at`,
+ `created_by`,
+ `updated_at`,
+ `updated_by`,
+ `deleted_at`,
+ `deleted_by`,
+ `is_deleted`
+FROM
+ `todo_histories`
+WHERE
+ `todo_id` = ?
+ AND `is_deleted` = ?
+ORDER BY `id` DESC
+LIMIT ?
+OFFSET ?;
+

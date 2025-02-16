@@ -119,6 +119,11 @@ func (r *rest) Register() {
 			todo.GET("/", r.ListTodo)
 			todo.POST("/:id", r.UpdateTodo)
 		}
+
+		todoHistory := v1.Group("/todo/histories")
+		{
+			todoHistory.GET("/", r.ListTodoHistories)
+		}
 	}
 }
 

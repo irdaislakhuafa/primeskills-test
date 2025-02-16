@@ -25,6 +25,20 @@ type Todo struct {
 	Description string         `db:"description" json:"description"`
 }
 
+type TodoHistory struct {
+	ID int64 `db:"id" json:"id"`
+	// refer to todos.id
+	TodoID    int64          `db:"todo_id" json:"todo_id"`
+	Message   string         `db:"message" json:"message"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	CreatedBy string         `db:"created_by" json:"created_by"`
+	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy sql.NullString `db:"updated_by" json:"updated_by"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	DeletedBy sql.NullString `db:"deleted_by" json:"deleted_by"`
+	IsDeleted int8           `db:"is_deleted" json:"is_deleted"`
+}
+
 type User struct {
 	ID        int64          `db:"id" json:"id"`
 	Name      string         `db:"name" json:"name"`

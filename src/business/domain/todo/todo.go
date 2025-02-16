@@ -63,6 +63,7 @@ func (t *todo) Create(ctx context.Context, params entity.CreateTodoParams) (enti
 		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLTxExec, "%s", err.Error())
 	}
 
+	// fill data for result
 	result := entity.Todo{
 		UserID:      params.UserID,
 		Title:       params.Title,
@@ -76,6 +77,18 @@ func (t *todo) Create(ctx context.Context, params entity.CreateTodoParams) (enti
 		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
 	}
 
+	// create todo histories
+	_, err = queries.CreateTodoHistory(ctx, entity.CreateTodoHistoryParams{
+		TodoID:    result.ID,
+		Message:   strformat.TWE("Todo '{{ .Title }}' created with status {{ .Status }}", result),
+		CreatedAt: result.CreatedAt,
+		CreatedBy: result.CreatedBy,
+	})
+	if err != nil {
+		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLTxExec, "%s", err.Error())
+	}
+
+	// commit changes
 	if err := tx.Commit(); err != nil {
 		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLTxCommit, "%s", err.Error())
 	}
@@ -112,14 +125,17 @@ func (t *todo) List(ctx context.Context, params entity.ListTodoParams) ([]entity
 }
 
 func (t *todo) Update(ctx context.Context, params entity.UpdateTodoParams) (entity.Todo, error) {
+	// begin tx
 	tx, err := t.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLTxBegin, "%s", err.Error())
 	}
 	defer tx.Rollback()
 
+	// prepare queries
 	queries := t.queries.WithTx(tx)
 
+	// fill necessary fields
 	params.UpdatedAt = sql.NullTime{
 		Valid: true,
 		Time:  time.Now(),
@@ -139,6 +155,7 @@ func (t *todo) Update(ctx context.Context, params entity.UpdateTodoParams) (enti
 		}
 	}
 
+	// ensure data todo is exists
 	prev, err := queries.GetOneTodo(ctx, entity.GetOneTodoParams{
 		ID:        params.ID,
 		IsDeleted: params.IsDeleted,
@@ -150,11 +167,44 @@ func (t *todo) Update(ctx context.Context, params entity.UpdateTodoParams) (enti
 		return entity.Todo{}, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
 	}
 
+	// update data todo
 	_, err = queries.UpdateTodo(ctx, params)
 	if err != nil {
 		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLTxExec, "%s", err.Error())
 	}
 
+	// record changes to histories
+	histories := []entity.CreateTodoHistoryParams{}
+	historyParams := map[string]any{
+		"Prev": prev,
+		"New":  params,
+	}
+	history := entity.CreateTodoHistoryParams{
+		TodoID:    params.ID,
+		CreatedAt: params.UpdatedAt.Time,
+		CreatedBy: params.UpdatedBy.String,
+	}
+
+	if prev.Title != params.Title {
+		history.Message = strformat.TWE("Rename title {{ .Prev.Title }} to {{ .New.Title }}", historyParams)
+		histories = append(histories, history)
+	}
+
+	if prev.Description != params.Description {
+		history.Message = strformat.TWE("Change description of '{{ .New.Title }}'", historyParams)
+	}
+
+	if prev.IsDeleted == 0 && params.IsDeleted == 1 {
+		history.Message = strformat.TWE("Delete todo '{{ .Prev.Title }}'", historyParams)
+	}
+
+	for _, h := range histories {
+		if _, err := queries.CreateTodoHistory(ctx, h); err != nil {
+			return entity.Todo{}, errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+		}
+	}
+
+	// commit changes
 	if err := tx.Commit(); err != nil {
 		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLTxCommit, "%s", err.Error())
 	}

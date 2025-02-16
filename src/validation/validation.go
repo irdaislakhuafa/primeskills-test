@@ -2,44 +2,47 @@ package validation
 
 import (
 	"reflect"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/irdaislakhuafa/go-sdk/codes"
 	"github.com/irdaislakhuafa/go-sdk/errors"
 	"github.com/irdaislakhuafa/go-sdk/strformat"
-	"github.com/irdaislakhuafa/primeskills-test/src/entity"
+	// "github.com/irdaislakhuafa/primeskills-test/src/entity"
 )
 
 type (
 	CreateUserParams struct {
-		Name      string    `db:"name" json:"name" validate:"required,min=1,max=255"`
-		Password  string    `db:"password" json:"password" validate:"required,min=8,max=255"`
-		Email     string    `db:"email" json:"email" validate:"required,email,max=255"`
-		CreatedAt time.Time `db:"created_at" json:"created_at"`
-		CreatedBy string    `db:"created_by" json:"created_by"`
+		Name     string `json:"name" validate:"required,min=1,max=255"`
+		Password string `json:"password" validate:"required,min=8,max=255"`
+		Email    string `json:"email" validate:"required,email,max=255"`
 	}
 	UpdateUserParams struct {
-		Name      string `db:"name" json:"name" validate:"required,min=1,max=255"`
-		IsDeleted int8   `db:"is_deleted" json:"is_deleted" validate:"number"`
-		ID        int64  `db:"id" json:"id" validate:"required,number"`
+		Name      string `json:"name" validate:"required,min=1,max=255"`
+		IsDeleted int8   `json:"is_deleted" validate:"number"`
+		ID        int64  `json:"id" validate:"required,number"`
 	}
-	ListUserParams entity.ListUserParams
+
+	ListUserParams struct {
+		Search    string `json:"search" form:"search"`
+		IsDeleted int8   `json:"is_deleted" form:"is_deleted"`
+		Limit     int32  `json:"limit" form:"limit"`
+		Page      int32  `json:"page" form:"page"`
+	}
 
 	CreateTodoParams struct {
-		UserID      int64  `db:"user_id" json:"user_id" validate:"required"`
-		Title       string `db:"title" json:"title" validate:"required,min=1,max=255"`
-		Description string `db:"description" json:"description" validate:""`
-		Status      string `db:"status" json:"status" validate:"required,oneof=complete cancel hold todo"`
+		UserID      int64  `json:"user_id" validate:"required"`
+		Title       string `json:"title" validate:"required,min=1,max=255"`
+		Description string `json:"description" validate:""`
+		Status      string `json:"status" validate:"required,oneof=complete cancel hold todo"`
 	}
 
 	ListTodoParams struct {
-		UserID    int64  `db:"user_id" json:"user_id" validate:"number,required"`
-		Status    string `db:"status" json:"status" validate:""`
-		Search    string `json:"search" validate:""`
-		Page      int64  `json:"page" validate:""`
-		Limit     int64  `json:"limit" validate:""`
-		IsDeleted int8   `json:"is_deleted" validate:""`
+		UserID    int64  `json:"user_id" form:"user_id" validate:"number,required"`
+		Status    string `json:"status" form:"status" validate:""`
+		Search    string `json:"search" form:"search" validate:""`
+		Page      int64  `json:"page" form:"page" validate:""`
+		Limit     int64  `json:"limit" form:"limit" validate:""`
+		IsDeleted int8   `json:"is_deleted" form:"is_deleted" validate:""`
 	}
 
 	UpdateTodoParams struct {
@@ -48,6 +51,13 @@ type (
 		Status      string `db:"status" json:"status"`
 		IsDeleted   int8   `db:"is_deleted" json:"is_deleted"`
 		ID          int64  `db:"id" json:"id"`
+	}
+
+	ListTodoHistories struct {
+		TodoID    int64 `json:"todo_id" form:"todo_id" validate:"required,number"`
+		IsDeleted int8  `json:"is_deleted" form:"is_deleted" validate:"number"`
+		Limit     int   `json:"limit" form:"limit" validate:"min=0"`
+		Page      int   `json:"page" form:"page" validate:"min=0"`
 	}
 )
 
