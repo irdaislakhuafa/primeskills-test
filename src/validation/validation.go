@@ -9,6 +9,7 @@ import (
 	"github.com/irdaislakhuafa/go-sdk/codes"
 	"github.com/irdaislakhuafa/go-sdk/errors"
 	"github.com/irdaislakhuafa/go-sdk/strformat"
+	"github.com/irdaislakhuafa/primeskills-test/src/entity"
 )
 
 type CreateUserParams struct {
@@ -25,6 +26,7 @@ type UpdateUserParams struct {
 	IsDeleted int8           `db:"is_deleted" json:"is_deleted" validate:"number"`
 	ID        int64          `db:"id" json:"id" validate:"required,number"`
 }
+type ListUserParams entity.ListUserParams
 
 var customMessages = map[string]string{
 	"required": "Field '{{ .Field }}' is required",

@@ -17,7 +17,7 @@ type (
 	Interface interface {
 		Create(ctx context.Context, params entity.CreateUserParams) (entity.User, error)
 		Update(ctx context.Context, params entity.UpdateUserParams) (entity.User, error)
-		List(ctx context.Context) ([]entity.User, error)
+		List(ctx context.Context, params entity.ListUserParams) ([]entity.User, error)
 	}
 	user struct {
 		log     log.Interface
@@ -119,6 +119,27 @@ func (u *user) Update(ctx context.Context, params entity.UpdateUserParams) (enti
 	}, nil
 }
 
-func (u *user) List(ctx context.Context) ([]entity.User, error) {
-	panic("")
+func (u *user) List(ctx context.Context, params entity.ListUserParams) ([]entity.User, error) {
+	rows, err := u.queries.ListUser(ctx, params)
+	if err != nil {
+		return nil, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
+	}
+
+	results := []entity.User{}
+	for _, row := range rows {
+		results = append(results, entity.User{
+			ID:        row.ID,
+			Name:      row.Name,
+			Email:     row.Email,
+			CreatedAt: row.CreatedAt,
+			CreatedBy: row.CreatedBy,
+			UpdatedAt: row.UpdatedAt,
+			UpdatedBy: row.UpdatedBy,
+			DeletedAt: row.DeletedAt,
+			DeletedBy: row.DeletedBy,
+			IsDeleted: row.IsDeleted,
+		})
+	}
+
+	return results, nil
 }

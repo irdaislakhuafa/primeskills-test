@@ -110,6 +110,7 @@ func (r *rest) Register() {
 		{
 			user.POST("/", r.CreateUser)
 			user.POST("/:id", r.UpdateUser)
+			user.GET("/", r.ListUser)
 		}
 	}
 }

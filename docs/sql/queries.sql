@@ -22,6 +22,32 @@ SELECT
  `deleted_at`,
  `deleted_by`,
  `is_deleted`
-FROM `users` WHERE
+FROM
+ `users`
+WHERE
  `id` = ?
  AND `is_deleted` = ?;
+
+-- name: ListUser :many
+SELECT
+ `id`,
+ `name`,
+ `email`,
+ `created_at`,
+ `created_by`,
+ `updated_at`,
+ `updated_by`,
+ `deleted_at`,
+ `deleted_by`,
+ `is_deleted`
+FROM
+ `users`
+WHERE
+ (
+  `name` LIKE CONCAT("%", ? , "%")
+  OR `email` LIKE CONCAT("%", ?, "%")
+ )
+ AND `is_deleted` = ?
+ORDER BY id DESC
+LIMIT ?
+OFFSET ?;

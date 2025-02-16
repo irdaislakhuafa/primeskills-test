@@ -17,6 +17,7 @@ type (
 	Interface interface {
 		Create(ctx context.Context, params validation.CreateUserParams) (entity.User, error)
 		Update(ctx context.Context, params validation.UpdateUserParams) (entity.User, error)
+		List(ctx context.Context, params validation.ListUserParams) ([]entity.User, error)
 	}
 	user struct {
 		log log.Interface
@@ -64,4 +65,17 @@ func (u *user) Update(ctx context.Context, params validation.UpdateUserParams) (
 	}
 
 	return result, nil
+}
+
+func (u *user) List(ctx context.Context, params validation.ListUserParams) ([]entity.User, error) {
+	if err := u.val.Struct(params); err != nil {
+		err := validation.ExtractError(err, params)
+		return nil, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
+	}
+
+	results, err := u.dom.User.List(ctx, entity.ListUserParams(params))
+	if err != nil {
+		return nil, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
+	}
+	return results, nil
 }

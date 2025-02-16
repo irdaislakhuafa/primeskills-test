@@ -46,7 +46,9 @@ SELECT
  ` + "`" + `deleted_at` + "`" + `,
  ` + "`" + `deleted_by` + "`" + `,
  ` + "`" + `is_deleted` + "`" + `
-FROM ` + "`" + `users` + "`" + ` WHERE
+FROM
+ ` + "`" + `users` + "`" + `
+WHERE
  ` + "`" + `id` + "`" + ` = ?
  AND ` + "`" + `is_deleted` + "`" + ` = ?
 `
@@ -85,6 +87,92 @@ func (q *Queries) GetOneUser(ctx context.Context, arg GetOneUserParams) (GetOneU
 		&i.IsDeleted,
 	)
 	return i, err
+}
+
+const listUser = `-- name: ListUser :many
+SELECT
+ ` + "`" + `id` + "`" + `,
+ ` + "`" + `name` + "`" + `,
+ ` + "`" + `email` + "`" + `,
+ ` + "`" + `created_at` + "`" + `,
+ ` + "`" + `created_by` + "`" + `,
+ ` + "`" + `updated_at` + "`" + `,
+ ` + "`" + `updated_by` + "`" + `,
+ ` + "`" + `deleted_at` + "`" + `,
+ ` + "`" + `deleted_by` + "`" + `,
+ ` + "`" + `is_deleted` + "`" + `
+FROM
+ ` + "`" + `users` + "`" + `
+WHERE
+ (
+  ` + "`" + `name` + "`" + ` LIKE CONCAT("%", ? , "%")
+  OR ` + "`" + `email` + "`" + ` LIKE CONCAT("%", ?, "%")
+ )
+ AND ` + "`" + `is_deleted` + "`" + ` = ?
+ORDER BY id DESC
+LIMIT ?
+OFFSET ?
+`
+
+type ListUserParams struct {
+	CONCAT    interface{} `db:"CONCAT" json:"CONCAT"`
+	CONCAT_2  interface{} `db:"CONCAT_2" json:"CONCAT_2"`
+	IsDeleted int8        `db:"is_deleted" json:"is_deleted"`
+	Limit     int32       `db:"limit" json:"limit"`
+	Offset    int32       `db:"offset" json:"offset"`
+}
+
+type ListUserRow struct {
+	ID        int64          `db:"id" json:"id"`
+	Name      string         `db:"name" json:"name"`
+	Email     string         `db:"email" json:"email"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	CreatedBy string         `db:"created_by" json:"created_by"`
+	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy sql.NullString `db:"updated_by" json:"updated_by"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	DeletedBy sql.NullString `db:"deleted_by" json:"deleted_by"`
+	IsDeleted int8           `db:"is_deleted" json:"is_deleted"`
+}
+
+func (q *Queries) ListUser(ctx context.Context, arg ListUserParams) ([]ListUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listUser,
+		arg.CONCAT,
+		arg.CONCAT_2,
+		arg.IsDeleted,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListUserRow
+	for rows.Next() {
+		var i ListUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Email,
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.UpdatedAt,
+			&i.UpdatedBy,
+			&i.DeletedAt,
+			&i.DeletedBy,
+			&i.IsDeleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateUser = `-- name: UpdateUser :execresult
