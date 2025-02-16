@@ -3,7 +3,7 @@
     "Title": "Todo List App",
     "Description": "A Simple Todo List App",
     "Version": "v0.0.01",
-    "Host": "127.0.0.1",
+    "Host": "r0k5erlfmqgf.share.zrok.io",
     "BasePath": "/"
   },
   "Gin": {

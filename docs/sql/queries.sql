@@ -51,3 +51,67 @@ WHERE
 ORDER BY id DESC
 LIMIT ?
 OFFSET ?;
+
+-- name: CreateTodo :execresult
+INSERT INTO `todos` (
+ `user_id`,
+ `title`,
+ `description`,
+ `status`,
+ `created_at`,
+ `created_by`
+) VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: UpdateTodo :execresult
+UPDATE `todos` SET
+ `title` = ?,
+ `description` = ?,
+ `status` = ?,
+ `updated_at` = ?,
+ `updated_by` = ?,
+ `is_deleted` = ?
+WHERE `id` = ?;
+
+-- name: GetOneTodo :one
+SELECT
+ `id`,
+ `user_id`,
+ `title`,
+ `description`,
+ `status`,
+ `created_at`,
+ `created_by`,
+ `updated_at`,
+ `updated_by`,
+ `deleted_at`,
+ `deleted_by`,
+ `is_deleted`
+FROM
+ `todos`
+WHERE
+ `id` = ?
+ AND `is_deleted` = ?;
+
+-- name: ListTodo :many
+SELECT
+ `id`,
+ `user_id`,
+ `title`,
+ `description`,
+ `status`,
+ `created_at`,
+ `created_by`,
+ `updated_at`,
+ `updated_by`,
+ `deleted_at`,
+ `deleted_by`,
+ `is_deleted`
+FROM
+ `todos`
+WHERE
+  `user_id` = ?
+  AND `status` LIKE ?
+  AND (
+   `title` LIKE CONCAT("%", ?, "%")
+   OR `description` LIKE CONCAT("%", ?, "%") 
+  );

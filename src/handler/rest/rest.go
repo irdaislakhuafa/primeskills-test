@@ -112,6 +112,11 @@ func (r *rest) Register() {
 			user.POST("/:id", r.UpdateUser)
 			user.GET("/", r.ListUser)
 		}
+
+		todo := v1.Group("/todos")
+		{
+			todo.POST("/", r.CreateTodo)
+		}
 	}
 }
 

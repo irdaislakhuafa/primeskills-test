@@ -10,9 +10,13 @@ import (
 )
 
 type Querier interface {
+	CreateTodo(ctx context.Context, arg CreateTodoParams) (sql.Result, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error)
+	GetOneTodo(ctx context.Context, arg GetOneTodoParams) (Todo, error)
 	GetOneUser(ctx context.Context, arg GetOneUserParams) (GetOneUserRow, error)
+	ListTodo(ctx context.Context, arg ListTodoParams) ([]Todo, error)
 	ListUser(ctx context.Context, arg ListUserParams) ([]ListUserRow, error)
+	UpdateTodo(ctx context.Context, arg UpdateTodoParams) (sql.Result, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Result, error)
 }
 
