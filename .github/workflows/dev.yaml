@@ -28,8 +28,7 @@ jobs:
        uses: actions/checkout@v4
      - run: |
         mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
-        echo "${{ secrets.SSH_CONFIG_DIR }}";
-        chmod -Rv 0600 ${{ secrets.SSH_CONFIG_FILE }};
+        chmod -Rv 0600 ${{ secrets.SSH_CONFIG_DIR }};
         echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
         echo "
          Host ${{ secrets.SSH_HOST }}
