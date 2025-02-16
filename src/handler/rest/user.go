@@ -64,3 +64,19 @@ func (r *rest) ListUser(ctx *gin.Context) {
 
 	r.httpRespSuccess(ctx, codes.CodeSuccess, results, &pag)
 }
+
+func (r *rest) LoginUser(ctx *gin.Context) {
+	body := validation.LoginUserParams{}
+	if err := ctx.BindJSON(&body); err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error()))
+		return
+	}
+
+	result, token, err := r.u.User.Login(ctx, body)
+	if err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(errors.GetCode(err), "%s", err.Error()))
+		return
+	}
+
+	r.httpRespSuccess(ctx, codes.CodeSuccess, map[string]any{"user": result, "token": token}, nil)
+}

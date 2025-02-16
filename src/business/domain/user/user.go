@@ -18,6 +18,7 @@ type (
 		Create(ctx context.Context, params entity.CreateUserParams) (entity.User, error)
 		Update(ctx context.Context, params entity.UpdateUserParams) (entity.User, error)
 		List(ctx context.Context, params entity.ListUserParams) ([]entity.User, entity.Pagination, error)
+		Get(ctx context.Context, params entity.GetOneUserParams) (entity.User, error)
 	}
 	user struct {
 		log     log.Interface
@@ -152,4 +153,30 @@ func (u *user) List(ctx context.Context, params entity.ListUserParams) ([]entity
 
 	p := entity.GenPagination(int(params.Offset), len(results), int(total))
 	return results, p, nil
+}
+
+func (u *user) Get(ctx context.Context, params entity.GetOneUserParams) (entity.User, error) {
+	row, err := u.queries.GetOneUser(ctx, params)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return entity.User{}, errors.NewWithCode(codes.CodeSQLRecordDoesNotExist, "%s", err.Error())
+		}
+		return entity.User{}, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
+	}
+
+	result := entity.User{
+		ID:        row.ID,
+		Name:      row.Name,
+		Email:     row.Email,
+		CreatedAt: row.CreatedAt,
+		CreatedBy: row.CreatedBy,
+		UpdatedAt: row.UpdatedAt,
+		UpdatedBy: row.UpdatedBy,
+		DeletedAt: row.DeletedAt,
+		DeletedBy: row.DeletedBy,
+		IsDeleted: row.IsDeleted,
+		Password:  row.Password,
+	}
+
+	return result, nil
 }

@@ -29,5 +29,8 @@
   },
   "Secrets": {
     "Key": "32725339befdb101b8c2dc6c5d2048308fd06496eac0074703035325b063576c"
+  },
+  "Token": {
+    "ExpirationMinutes": 43200
   }
 }

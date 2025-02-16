@@ -111,7 +111,7 @@ func (r *rest) Register() {
 	{
 
 		v1.POST("/user/register", r.CreateUser)
-		v1.POST("/user/login")
+		v1.POST("/user/login", r.LoginUser)
 
 		user := v1.Group("/users", r.addJwtAuth)
 		{
@@ -154,7 +154,7 @@ func (r *rest) addJwtAuth(ctx *gin.Context) {
 		r.httpRespError(ctx, errors.NewWithCode(codes.CodeUnauthorized, "Unauthorized"))
 		return
 	}
-	const BEARIER = "Bearier "
+	const BEARIER = "Bearer "
 	if !strings.HasPrefix(headerAuth, BEARIER) {
 		r.httpRespError(ctx, errors.NewWithCode(codes.CodeUnauthorized, "Unauthorized"))
 		return
@@ -162,7 +162,7 @@ func (r *rest) addJwtAuth(ctx *gin.Context) {
 
 	token := strings.ReplaceAll(headerAuth, BEARIER, "")
 
-	authJwt := auth.InitJWT([]byte(r.cfg.Secrets.Key), entity.AuthJWTClaims{})
+	authJwt := auth.InitJWT([]byte(r.cfg.Secrets.Key), &entity.AuthJWTClaims{})
 	jToken, err := authJwt.Validate(ctx, token)
 	if err != nil {
 		r.httpRespError(ctx, errors.NewWithCode(codes.CodeUnauthorized, "%s", err.Error()))

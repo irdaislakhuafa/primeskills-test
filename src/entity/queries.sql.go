@@ -240,6 +240,7 @@ SELECT
  ` + "`" + `id` + "`" + `,
  ` + "`" + `name` + "`" + `,
  ` + "`" + `email` + "`" + `,
+ ` + "`" + `password` + "`" + `,
  ` + "`" + `created_at` + "`" + `,
  ` + "`" + `created_by` + "`" + `,
  ` + "`" + `updated_at` + "`" + `,
@@ -250,19 +251,21 @@ SELECT
 FROM
  ` + "`" + `users` + "`" + `
 WHERE
- ` + "`" + `id` + "`" + ` = ?
+ (` + "`" + `id` + "`" + ` = ? OR ` + "`" + `email` + "`" + ` = ?)
  AND ` + "`" + `is_deleted` + "`" + ` = ?
 `
 
 type GetOneUserParams struct {
-	ID        int64 `db:"id" json:"id"`
-	IsDeleted int8  `db:"is_deleted" json:"is_deleted"`
+	ID        int64  `db:"id" json:"id"`
+	Email     string `db:"email" json:"email"`
+	IsDeleted int8   `db:"is_deleted" json:"is_deleted"`
 }
 
 type GetOneUserRow struct {
 	ID        int64          `db:"id" json:"id"`
 	Name      string         `db:"name" json:"name"`
 	Email     string         `db:"email" json:"email"`
+	Password  string         `db:"password" json:"password"`
 	CreatedAt time.Time      `db:"created_at" json:"created_at"`
 	CreatedBy string         `db:"created_by" json:"created_by"`
 	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
@@ -273,12 +276,13 @@ type GetOneUserRow struct {
 }
 
 func (q *Queries) GetOneUser(ctx context.Context, arg GetOneUserParams) (GetOneUserRow, error) {
-	row := q.db.QueryRowContext(ctx, getOneUser, arg.ID, arg.IsDeleted)
+	row := q.db.QueryRowContext(ctx, getOneUser, arg.ID, arg.Email, arg.IsDeleted)
 	var i GetOneUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Email,
+		&i.Password,
 		&i.CreatedAt,
 		&i.CreatedBy,
 		&i.UpdatedAt,
