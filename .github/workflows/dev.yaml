@@ -4,7 +4,7 @@ on:
    # tags:
    #   - v*
    branches:
-     - master
+     - ci/cd
 jobs:
   test:
    name: Testing code
@@ -25,7 +25,7 @@ jobs:
    runs-on: ubuntu-latest
    steps:
      - name: clone repo
-       uses: actions/checkout@v1
+       uses: actions/checkout@v4
      # - id: ssh_src
      #   uses: invi5H/ssh-action@v1
      #   with:
@@ -34,9 +34,10 @@ jobs:
      #     SSH_USER: ${{ secrets.SSH_USER }}
      #     SSH_KEY: ${{ secrets.SSH_KEY }}
      - run: |
-        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/key.pem;
+        mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
+        echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets. }};
         echo "
-         Host dev-server
+         Host ${{ secrets.SSH_HOST }}
            HostName ${{ secrets.SSH_HOST }}
            Port ${{ secrets.SSH_PORT }}
            User ${{ secrets.SSH_USER }}
