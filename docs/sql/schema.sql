@@ -28,3 +28,6 @@ CREATE TABLE `todos` (
  `deleted_by` VARCHAR(255) NULL,
  `is_deleted` TINYINT NOT NULL DEFAULT 0
 );
+
+ALTER TABLE `users`
+ ADD COLUMN `password` VARCHAR(255) NOT NULL AFTER `email`;

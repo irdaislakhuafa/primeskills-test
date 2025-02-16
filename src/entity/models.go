@@ -12,7 +12,7 @@ import (
 type Todo struct {
 	ID int64 `db:"id" json:"id"`
 	// refer to users.id
-	UserID      int32          `db:"user_id" json:"user_id"`
+	UserID      int64          `db:"user_id" json:"user_id"`
 	Title       string         `db:"title" json:"title"`
 	Description sql.NullString `db:"description" json:"description"`
 	Status      string         `db:"status" json:"status"`
@@ -36,4 +36,5 @@ type User struct {
 	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
 	DeletedBy sql.NullString `db:"deleted_by" json:"deleted_by"`
 	IsDeleted int8           `db:"is_deleted" json:"is_deleted"`
+	Password  string         `db:"password" json:"password"`
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func InitMySQL(cfg config.Config) (*sql.DB, error) {
-	dsFormat := "{{ .Username }}:{{ .Password }}@tcp({{ .Host }}:{{ .Port }})/{{ .DBName }}"
+	dsFormat := "{{ .Username }}:{{ .Password }}@tcp({{ .Host }}:{{ .Port }})/{{ .DBName }}?parseTime=true"
 	dsn := strformat.TWE(dsFormat, cfg.DB.Master)
 	db, err := sql.Open(DriverNameMySQL, dsn)
 	if err != nil {

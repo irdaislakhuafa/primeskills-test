@@ -1,8 +1,11 @@
 package rest
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/irdaislakhuafa/go-sdk/codes"
+	"github.com/irdaislakhuafa/go-sdk/errors"
 	"github.com/irdaislakhuafa/primeskills-test/src/validation"
 )
 
@@ -14,6 +17,30 @@ func (r *rest) CreateUser(ctx *gin.Context) {
 	}
 
 	result, err := r.u.User.Create(ctx, body)
+	if err != nil {
+		r.httpRespError(ctx, err)
+		return
+	}
+
+	r.httpRespSuccess(ctx, codes.CodeSuccess, result, nil)
+}
+
+func (r *rest) UpdateUser(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "invalid id"))
+		return
+	}
+
+	body := validation.UpdateUserParams{ID: id}
+	if err := ctx.BindJSON(&body); err != nil {
+		r.httpRespError(ctx, err)
+		return
+	}
+	r.log.Info(ctx, body)
+
+	result, err := r.u.User.Update(ctx, body)
 	if err != nil {
 		r.httpRespError(ctx, err)
 		return

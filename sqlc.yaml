@@ -24,6 +24,19 @@ sql:
         output_querier_file_name: querier.go
         query_parameter_limit: 1
         omit_unused_structs: false
+        # overrides:
+          # - nullable: true
+          #   column: "users.updated_at"
+          #   go_type: "time.Time"
+          # - nullable: true
+          #   column: "users.updated_by"
+          #   go_type: "string"
+          # - nullable: true
+          #   column: "users.deleted_at"
+          #   go_type: "time.Time"
+          # - nullable: true
+          #   column: "users.deleted_by"
+          #   go_type: "string"
 overrides:
     go: {}
 plugins: []

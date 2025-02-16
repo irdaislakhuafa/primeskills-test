@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"database/sql"
 	"reflect"
 	"time"
 
@@ -12,9 +13,17 @@ import (
 
 type CreateUserParams struct {
 	Name      string    `db:"name" json:"name" validate:"required,min=1,max=255"`
+	Password  string    `db:"password" json:"password" validate:"required,min=8,max=255"`
 	Email     string    `db:"email" json:"email" validate:"required,email,max=255"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	CreatedBy string    `db:"created_by" json:"created_by"`
+}
+type UpdateUserParams struct {
+	Name      string         `db:"name" json:"name" validate:"required,min=1,max=255"`
+	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy sql.NullString `db:"updated_by" json:"updated_by"`
+	IsDeleted int8           `db:"is_deleted" json:"is_deleted" validate:"number"`
+	ID        int64          `db:"id" json:"id" validate:"required,number"`
 }
 
 var customMessages = map[string]string{

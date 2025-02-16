@@ -109,6 +109,7 @@ func (r *rest) Register() {
 		user := v1.Group("/users")
 		{
 			user.POST("/", r.CreateUser)
+			user.POST("/:id", r.UpdateUser)
 		}
 	}
 }
@@ -215,7 +216,6 @@ func (r *rest) httpRespSuccess(ctx *gin.Context, code codes.Code, data any, p *e
 
 	ctx.Header(header.KeyRequestID, appcontext.GetRequestID(c))
 	ctx.Data(successApp.StatusCode, header.ContentTypeJSON, raw)
-	return
 }
 
 /**
