@@ -26,12 +26,8 @@ jobs:
    steps:
      - name: Clone repo
        uses: actions/checkout@v4
-     # - name: Setup ssh
-     #   uses: MrSquaare/ssh-setup-action@v3
-     #   with:
-     #     host: ${{ secrets.SSH_HOST }}
-     #     port: ${{ secrets.SSH_PORT }}
-     #     private-key: ${{ secrets.SSH_KEY }}
+     - name: Setup docker
+       uses: docker/setup-docker-action@v4
      - name: Run command
        run: |
         mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
@@ -47,3 +43,5 @@ jobs:
         EOF;
 
         ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} -- whoami
+
+        docker --version
