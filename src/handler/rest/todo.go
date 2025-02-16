@@ -63,3 +63,26 @@ func (r *rest) ListTodo(ctx *gin.Context) {
 
 	r.httpRespSuccess(ctx, codes.CodeSuccess, results, nil)
 }
+
+func (r *rest) UpdateTodo(ctx *gin.Context) {
+	body := validation.UpdateTodoParams{}
+	if err := ctx.BindJSON(&body); err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error()))
+		return
+	}
+
+	id, err := strconv.ParseInt(ctx.Param("id"), 10, 16)
+	if err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "invalid id"))
+		return
+	}
+	body.ID = id
+
+	result, err := r.u.Todo.Update(ctx, body)
+	if err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(errors.GetCode(err), "%s", err.Error()))
+		return
+	}
+
+	r.httpRespSuccess(ctx, codes.CodeSuccess, result, nil)
+}

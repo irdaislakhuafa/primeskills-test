@@ -23,12 +23,12 @@ INSERT INTO ` + "`" + `todos` + "`" + ` (
 `
 
 type CreateTodoParams struct {
-	UserID      int64          `db:"user_id" json:"user_id"`
-	Title       string         `db:"title" json:"title"`
-	Description sql.NullString `db:"description" json:"description"`
-	Status      string         `db:"status" json:"status"`
-	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
-	CreatedBy   string         `db:"created_by" json:"created_by"`
+	UserID      int64     `db:"user_id" json:"user_id"`
+	Title       string    `db:"title" json:"title"`
+	Description string    `db:"description" json:"description"`
+	Status      string    `db:"status" json:"status"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+	CreatedBy   string    `db:"created_by" json:"created_by"`
 }
 
 func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (sql.Result, error) {
@@ -91,9 +91,24 @@ type GetOneTodoParams struct {
 	IsDeleted int8  `db:"is_deleted" json:"is_deleted"`
 }
 
-func (q *Queries) GetOneTodo(ctx context.Context, arg GetOneTodoParams) (Todo, error) {
+type GetOneTodoRow struct {
+	ID          int64          `db:"id" json:"id"`
+	UserID      int64          `db:"user_id" json:"user_id"`
+	Title       string         `db:"title" json:"title"`
+	Description string         `db:"description" json:"description"`
+	Status      string         `db:"status" json:"status"`
+	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
+	CreatedBy   string         `db:"created_by" json:"created_by"`
+	UpdatedAt   sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy   sql.NullString `db:"updated_by" json:"updated_by"`
+	DeletedAt   sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	DeletedBy   sql.NullString `db:"deleted_by" json:"deleted_by"`
+	IsDeleted   int8           `db:"is_deleted" json:"is_deleted"`
+}
+
+func (q *Queries) GetOneTodo(ctx context.Context, arg GetOneTodoParams) (GetOneTodoRow, error) {
 	row := q.db.QueryRowContext(ctx, getOneTodo, arg.ID, arg.IsDeleted)
-	var i Todo
+	var i GetOneTodoRow
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
@@ -205,7 +220,22 @@ type ListTodoParams struct {
 	Offset    int32       `db:"offset" json:"offset"`
 }
 
-func (q *Queries) ListTodo(ctx context.Context, arg ListTodoParams) ([]Todo, error) {
+type ListTodoRow struct {
+	ID          int64          `db:"id" json:"id"`
+	UserID      int64          `db:"user_id" json:"user_id"`
+	Title       string         `db:"title" json:"title"`
+	Description string         `db:"description" json:"description"`
+	Status      string         `db:"status" json:"status"`
+	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
+	CreatedBy   string         `db:"created_by" json:"created_by"`
+	UpdatedAt   sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy   sql.NullString `db:"updated_by" json:"updated_by"`
+	DeletedAt   sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	DeletedBy   sql.NullString `db:"deleted_by" json:"deleted_by"`
+	IsDeleted   int8           `db:"is_deleted" json:"is_deleted"`
+}
+
+func (q *Queries) ListTodo(ctx context.Context, arg ListTodoParams) ([]ListTodoRow, error) {
 	rows, err := q.db.QueryContext(ctx, listTodo,
 		arg.UserID,
 		arg.Status,
@@ -219,9 +249,9 @@ func (q *Queries) ListTodo(ctx context.Context, arg ListTodoParams) ([]Todo, err
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Todo
+	var items []ListTodoRow
 	for rows.Next() {
-		var i Todo
+		var i ListTodoRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -342,16 +372,20 @@ UPDATE ` + "`" + `todos` + "`" + ` SET
  ` + "`" + `status` + "`" + ` = ?,
  ` + "`" + `updated_at` + "`" + ` = ?,
  ` + "`" + `updated_by` + "`" + ` = ?,
+ ` + "`" + `deleted_at` + "`" + ` = ?,
+ ` + "`" + `deleted_by` + "`" + ` = ?,
  ` + "`" + `is_deleted` + "`" + ` = ?
 WHERE ` + "`" + `id` + "`" + ` = ?
 `
 
 type UpdateTodoParams struct {
 	Title       string         `db:"title" json:"title"`
-	Description sql.NullString `db:"description" json:"description"`
+	Description string         `db:"description" json:"description"`
 	Status      string         `db:"status" json:"status"`
 	UpdatedAt   sql.NullTime   `db:"updated_at" json:"updated_at"`
 	UpdatedBy   sql.NullString `db:"updated_by" json:"updated_by"`
+	DeletedAt   sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	DeletedBy   sql.NullString `db:"deleted_by" json:"deleted_by"`
 	IsDeleted   int8           `db:"is_deleted" json:"is_deleted"`
 	ID          int64          `db:"id" json:"id"`
 }
@@ -363,6 +397,8 @@ func (q *Queries) UpdateTodo(ctx context.Context, arg UpdateTodoParams) (sql.Res
 		arg.Status,
 		arg.UpdatedAt,
 		arg.UpdatedBy,
+		arg.DeletedAt,
+		arg.DeletedBy,
 		arg.IsDeleted,
 		arg.ID,
 	)
@@ -373,6 +409,8 @@ UPDATE ` + "`" + `users` + "`" + ` SET
  ` + "`" + `name` + "`" + ` = ?,
  ` + "`" + `updated_at` + "`" + ` = ?,
  ` + "`" + `updated_by` + "`" + ` = ?,
+ ` + "`" + `deleted_at` + "`" + ` = ?,
+ ` + "`" + `deleted_by` + "`" + ` = ?,
  ` + "`" + `is_deleted` + "`" + ` = ?
 WHERE ` + "`" + `id` + "`" + ` = ?
 `
@@ -381,6 +419,8 @@ type UpdateUserParams struct {
 	Name      string         `db:"name" json:"name"`
 	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
 	UpdatedBy sql.NullString `db:"updated_by" json:"updated_by"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	DeletedBy sql.NullString `db:"deleted_by" json:"deleted_by"`
 	IsDeleted int8           `db:"is_deleted" json:"is_deleted"`
 	ID        int64          `db:"id" json:"id"`
 }
@@ -390,6 +430,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Res
 		arg.Name,
 		arg.UpdatedAt,
 		arg.UpdatedBy,
+		arg.DeletedAt,
+		arg.DeletedBy,
 		arg.IsDeleted,
 		arg.ID,
 	)

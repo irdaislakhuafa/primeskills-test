@@ -117,6 +117,7 @@ func (r *rest) Register() {
 		{
 			todo.POST("/", r.CreateTodo)
 			todo.GET("/", r.ListTodo)
+			todo.POST("/:id", r.UpdateTodo)
 		}
 	}
 }

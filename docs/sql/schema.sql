@@ -31,3 +31,6 @@ CREATE TABLE `todos` (
 
 ALTER TABLE `users`
  ADD COLUMN `password` VARCHAR(255) NOT NULL AFTER `email`;
+
+UPDATE `todos` SET `description` = '' WHERE `description` IS NULL;
+ALTER TABLE `todos` MODIFY COLUMN `description` TEXT NOT NULL;
