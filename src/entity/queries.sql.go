@@ -69,6 +69,32 @@ func (q *Queries) CountTodoHistories(ctx context.Context, arg CountTodoHistories
 	return total, err
 }
 
+const countUser = `-- name: CountUser :one
+SELECT
+ COUNT(` + "`" + `id` + "`" + `)
+FROM
+ ` + "`" + `users` + "`" + `
+WHERE
+ (
+  ` + "`" + `name` + "`" + ` LIKE CONCAT("%", ? , "%")
+  OR ` + "`" + `email` + "`" + ` LIKE CONCAT("%", ?, "%")
+ )
+ AND ` + "`" + `is_deleted` + "`" + ` = ?
+`
+
+type CountUserParams struct {
+	CONCAT    interface{} `db:"CONCAT" json:"CONCAT"`
+	CONCAT_2  interface{} `db:"CONCAT_2" json:"CONCAT_2"`
+	IsDeleted int8        `db:"is_deleted" json:"is_deleted"`
+}
+
+func (q *Queries) CountUser(ctx context.Context, arg CountUserParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUser, arg.CONCAT, arg.CONCAT_2, arg.IsDeleted)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createTodo = `-- name: CreateTodo :execresult
 INSERT INTO ` + "`" + `todos` + "`" + ` (
  ` + "`" + `user_id` + "`" + `,

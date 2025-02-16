@@ -17,7 +17,7 @@ type (
 	Interface interface {
 		Create(ctx context.Context, params validation.CreateUserParams) (entity.User, error)
 		Update(ctx context.Context, params validation.UpdateUserParams) (entity.User, error)
-		List(ctx context.Context, params validation.ListUserParams) ([]entity.User, error)
+		List(ctx context.Context, params validation.ListUserParams) ([]entity.User, entity.Pagination, error)
 	}
 	user struct {
 		log log.Interface
@@ -75,13 +75,13 @@ func (u *user) Update(ctx context.Context, params validation.UpdateUserParams) (
 	return result, nil
 }
 
-func (u *user) List(ctx context.Context, params validation.ListUserParams) ([]entity.User, error) {
+func (u *user) List(ctx context.Context, params validation.ListUserParams) ([]entity.User, entity.Pagination, error) {
 	if err := u.val.Struct(params); err != nil {
 		err := validation.ExtractError(err, params)
-		return nil, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
+		return nil, entity.Pagination{}, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}
 
-	results, err := u.dom.User.List(ctx, entity.ListUserParams{
+	results, pag, err := u.dom.User.List(ctx, entity.ListUserParams{
 		CONCAT:    params.Search,
 		CONCAT_2:  params.Search,
 		IsDeleted: params.IsDeleted,
@@ -89,7 +89,7 @@ func (u *user) List(ctx context.Context, params validation.ListUserParams) ([]en
 		Offset:    params.Page,
 	})
 	if err != nil {
-		return nil, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
+		return nil, entity.Pagination{}, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}
-	return results, nil
+	return results, pag, nil
 }

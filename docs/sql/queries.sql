@@ -54,6 +54,19 @@ ORDER BY id DESC
 LIMIT ?
 OFFSET ?;
 
+-- name: CountUser :one
+SELECT
+ COUNT(`id`)
+FROM
+ `users`
+WHERE
+ (
+  `name` LIKE CONCAT("%", ? , "%")
+  OR `email` LIKE CONCAT("%", ?, "%")
+ )
+ AND `is_deleted` = ?;
+
+
 -- name: CreateTodo :execresult
 INSERT INTO `todos` (
  `user_id`,
