@@ -33,7 +33,6 @@ jobs:
         # setup ssh env
         mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
         echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
-        chmod -R 600 ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
         cat <<EOF > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }}
          Host ${{ secrets.SSH_HOST }}
            HostName ${{ secrets.SSH_HOST }}
@@ -42,8 +41,11 @@ jobs:
            IdentityFile ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }}
            StrictHostKeyChecking no
         EOF
-     - name: test sudo
-       run: sudo whoami
+     - name: Setup ssh permission
+       run: |
+        sudo chmod -R 600 ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
+        sudo chown -R $(whoami):$(whoami) ${{ secrets.SSH_CONFIG_DIR }};
+        
      - name: Test ssh
        run: ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} "echo 'SSH Connected Successfully'"
      - uses: docker/setup-docker-action@v4
