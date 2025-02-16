@@ -18,7 +18,7 @@ import (
 type (
 	Interface interface {
 		Create(ctx context.Context, params entity.CreateTodoParams) (entity.Todo, error)
-		List(ctx context.Context, params entity.ListTodoParams) ([]entity.Todo, error)
+		List(ctx context.Context, params entity.ListTodoParams) ([]entity.Todo, entity.Pagination, error)
 		Update(ctx context.Context, params entity.UpdateTodoParams) (entity.Todo, error)
 	}
 	todo struct {
@@ -96,11 +96,13 @@ func (t *todo) Create(ctx context.Context, params entity.CreateTodoParams) (enti
 	return result, nil
 }
 
-func (t *todo) List(ctx context.Context, params entity.ListTodoParams) ([]entity.Todo, error) {
+func (t *todo) List(ctx context.Context, params entity.ListTodoParams) ([]entity.Todo, entity.Pagination, error) {
 	params.Status = strformat.TWE("%{{ .Status }}%", params)
-	rows, err := t.queries.ListTodo(ctx, params)
+	args := params
+	args.Offset *= args.Limit
+	rows, err := t.queries.ListTodo(ctx, args)
 	if err != nil {
-		return nil, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
+		return nil, entity.Pagination{}, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
 	}
 
 	results := []entity.Todo{}
@@ -121,7 +123,19 @@ func (t *todo) List(ctx context.Context, params entity.ListTodoParams) ([]entity
 		})
 	}
 
-	return results, nil
+	total, err := t.queries.CountTodo(ctx, entity.CountTodoParams{
+		UserID:    params.UserID,
+		Status:    params.Status,
+		IsDeleted: params.IsDeleted,
+		CONCAT:    params.CONCAT,
+		CONCAT_2:  params.CONCAT_2,
+	})
+	if err != nil {
+		return nil, entity.Pagination{}, errors.NewWithCode(codes.CodeSQLRead, err.Error())
+	}
+
+	p := entity.GenPagination(int(params.Offset), len(results), int(total))
+	return results, p, nil
 }
 
 func (t *todo) Update(ctx context.Context, params entity.UpdateTodoParams) (entity.Todo, error) {

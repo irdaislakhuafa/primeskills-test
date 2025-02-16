@@ -11,6 +11,42 @@ import (
 	"time"
 )
 
+const countTodo = `-- name: CountTodo :one
+SELECT
+ COUNT(` + "`" + `id` + "`" + `) AS total
+FROM
+ ` + "`" + `todos` + "`" + `
+WHERE
+  ` + "`" + `user_id` + "`" + ` = ?
+  AND ` + "`" + `status` + "`" + ` LIKE ?
+  AND ` + "`" + `is_deleted` + "`" + ` = ?
+  AND (
+   ` + "`" + `title` + "`" + ` LIKE CONCAT("%", ?, "%")
+   OR ` + "`" + `description` + "`" + ` LIKE CONCAT("%", ?, "%") 
+  )
+`
+
+type CountTodoParams struct {
+	UserID    int64       `db:"user_id" json:"user_id"`
+	Status    string      `db:"status" json:"status"`
+	IsDeleted int8        `db:"is_deleted" json:"is_deleted"`
+	CONCAT    interface{} `db:"CONCAT" json:"CONCAT"`
+	CONCAT_2  interface{} `db:"CONCAT_2" json:"CONCAT_2"`
+}
+
+func (q *Queries) CountTodo(ctx context.Context, arg CountTodoParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countTodo,
+		arg.UserID,
+		arg.Status,
+		arg.IsDeleted,
+		arg.CONCAT,
+		arg.CONCAT_2,
+	)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
 const countTodoHistories = `-- name: CountTodoHistories :one
 SELECT
  COUNT(` + "`" + `id` + "`" + `) AS total

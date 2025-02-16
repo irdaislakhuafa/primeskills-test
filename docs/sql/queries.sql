@@ -124,6 +124,20 @@ ORDER BY `id` DESC
 LIMIT ?
 OFFSET ?;
 
+-- name: CountTodo :one
+SELECT
+ COUNT(`id`) AS total
+FROM
+ `todos`
+WHERE
+  `user_id` = ?
+  AND `status` LIKE ?
+  AND `is_deleted` = ?
+  AND (
+   `title` LIKE CONCAT("%", ?, "%")
+   OR `description` LIKE CONCAT("%", ?, "%") 
+  );
+
 -- name: CreateTodoHistory :execresult
 INSERT INTO `todo_histories` (
  `todo_id`,

@@ -16,7 +16,7 @@ import (
 type (
 	Interface interface {
 		Create(ctx context.Context, params validation.CreateTodoParams) (entity.Todo, error)
-		List(ctx context.Context, params validation.ListTodoParams) ([]entity.Todo, error)
+		List(ctx context.Context, params validation.ListTodoParams) ([]entity.Todo, entity.Pagination, error)
 		Update(ctx context.Context, params validation.UpdateTodoParams) (entity.Todo, error)
 	}
 	todo struct {
@@ -53,13 +53,13 @@ func (t *todo) Create(ctx context.Context, params validation.CreateTodoParams) (
 	return result, nil
 }
 
-func (t *todo) List(ctx context.Context, params validation.ListTodoParams) ([]entity.Todo, error) {
+func (t *todo) List(ctx context.Context, params validation.ListTodoParams) ([]entity.Todo, entity.Pagination, error) {
 	if err := t.val.StructCtx(ctx, params); err != nil {
 		err := validation.ExtractError(err, params)
-		return nil, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
+		return nil, entity.Pagination{}, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
 	}
 
-	results, err := t.dom.Todo.List(ctx, entity.ListTodoParams{
+	results, pag, err := t.dom.Todo.List(ctx, entity.ListTodoParams{
 		UserID:    params.UserID,
 		Status:    params.Status,
 		IsDeleted: params.IsDeleted,
@@ -69,10 +69,10 @@ func (t *todo) List(ctx context.Context, params validation.ListTodoParams) ([]en
 		Offset:    int32(params.Page),
 	})
 	if err != nil {
-		return nil, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
+		return nil, entity.Pagination{}, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}
 
-	return results, nil
+	return results, pag, nil
 }
 
 func (t *todo) Update(ctx context.Context, params validation.UpdateTodoParams) (entity.Todo, error) {
