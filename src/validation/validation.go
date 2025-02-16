@@ -35,6 +35,15 @@ type (
 		Description *string `db:"description" json:"description" validate:""`
 		Status      string  `db:"status" json:"status" validate:"required,oneof=complete cancel hold todo"`
 	}
+
+	ListTodoParams struct {
+		UserID    int64  `db:"user_id" json:"user_id" validate:"number,required"`
+		Status    string `db:"status" json:"status" validate:""`
+		Search    string `json:"search" validate:""`
+		Page      int64  `json:"page" validate:""`
+		Limit     int64  `json:"limit" validate:""`
+		IsDeleted int8   `json:"is_deleted" validate:""`
+	}
 )
 
 var customMessages = map[string]string{

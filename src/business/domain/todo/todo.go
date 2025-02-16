@@ -47,6 +47,9 @@ func (t *todo) Create(ctx context.Context, params entity.CreateTodoParams) (enti
 	// ensure user is exists
 	_, err = queries.GetOneUser(ctx, entity.GetOneUserParams{ID: params.UserID, IsDeleted: 0})
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return entity.Todo{}, errors.NewWithCode(codes.CodeSQLNoRowsAffected, "User not found!")
+		}
 		return entity.Todo{}, errors.NewWithCode(codes.CodeSQLRead, "%s", err.Error())
 	}
 

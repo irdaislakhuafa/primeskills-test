@@ -111,7 +111,11 @@ FROM
 WHERE
   `user_id` = ?
   AND `status` LIKE ?
+  AND `is_deleted` = ?
   AND (
    `title` LIKE CONCAT("%", ?, "%")
    OR `description` LIKE CONCAT("%", ?, "%") 
-  );
+  )
+ORDER BY `id` DESC
+LIMIT ?
+OFFSET ?;

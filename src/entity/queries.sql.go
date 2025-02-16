@@ -185,25 +185,35 @@ FROM
 WHERE
   ` + "`" + `user_id` + "`" + ` = ?
   AND ` + "`" + `status` + "`" + ` LIKE ?
+  AND ` + "`" + `is_deleted` + "`" + ` = ?
   AND (
    ` + "`" + `title` + "`" + ` LIKE CONCAT("%", ?, "%")
    OR ` + "`" + `description` + "`" + ` LIKE CONCAT("%", ?, "%") 
   )
+ORDER BY ` + "`" + `id` + "`" + ` DESC
+LIMIT ?
+OFFSET ?
 `
 
 type ListTodoParams struct {
-	UserID   int64       `db:"user_id" json:"user_id"`
-	Status   string      `db:"status" json:"status"`
-	CONCAT   interface{} `db:"CONCAT" json:"CONCAT"`
-	CONCAT_2 interface{} `db:"CONCAT_2" json:"CONCAT_2"`
+	UserID    int64       `db:"user_id" json:"user_id"`
+	Status    string      `db:"status" json:"status"`
+	IsDeleted int8        `db:"is_deleted" json:"is_deleted"`
+	CONCAT    interface{} `db:"CONCAT" json:"CONCAT"`
+	CONCAT_2  interface{} `db:"CONCAT_2" json:"CONCAT_2"`
+	Limit     int32       `db:"limit" json:"limit"`
+	Offset    int32       `db:"offset" json:"offset"`
 }
 
 func (q *Queries) ListTodo(ctx context.Context, arg ListTodoParams) ([]Todo, error) {
 	rows, err := q.db.QueryContext(ctx, listTodo,
 		arg.UserID,
 		arg.Status,
+		arg.IsDeleted,
 		arg.CONCAT,
 		arg.CONCAT_2,
+		arg.Limit,
+		arg.Offset,
 	)
 	if err != nil {
 		return nil, err

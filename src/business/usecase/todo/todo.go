@@ -17,6 +17,7 @@ import (
 type (
 	Interface interface {
 		Create(ctx context.Context, params validation.CreateTodoParams) (entity.Todo, error)
+		List(ctx context.Context, params validation.ListTodoParams) ([]entity.Todo, error)
 	}
 	todo struct {
 		log log.Interface
@@ -53,4 +54,26 @@ func (t *todo) Create(ctx context.Context, params validation.CreateTodoParams) (
 	}
 
 	return result, nil
+}
+
+func (t *todo) List(ctx context.Context, params validation.ListTodoParams) ([]entity.Todo, error) {
+	if err := t.val.StructCtx(ctx, params); err != nil {
+		err := validation.ExtractError(err, params)
+		return nil, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
+	}
+
+	results, err := t.dom.Todo.List(ctx, entity.ListTodoParams{
+		UserID:    params.UserID,
+		Status:    params.Status,
+		IsDeleted: params.IsDeleted,
+		CONCAT:    params.Search,
+		CONCAT_2:  params.Search,
+		Limit:     int32(params.Limit),
+		Offset:    int32(params.Page),
+	})
+	if err != nil {
+		return nil, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
+	}
+
+	return results, nil
 }
