@@ -32,7 +32,7 @@ jobs:
        run: |
         # setup ssh env
         mkdir -p ${{ secrets.SSH_CONFIG_DIR }};
-        echo "${{ secrets.SSH_KEY }}" > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
+        echo "${{ secrets.SSH_KEY }}" | base64 -d > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_KEY_FILE }};
         cat <<EOF > ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }}
          Host ${{ secrets.SSH_HOST }}
            HostName ${{ secrets.SSH_HOST }}
