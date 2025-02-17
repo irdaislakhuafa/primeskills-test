@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/irdaislakhuafa/go-sdk/auth"
 	"github.com/irdaislakhuafa/go-sdk/codes"
+	"github.com/irdaislakhuafa/go-sdk/convert"
 	"github.com/irdaislakhuafa/go-sdk/cryptography"
 	"github.com/irdaislakhuafa/go-sdk/errors"
 	"github.com/irdaislakhuafa/go-sdk/header"
@@ -20,6 +22,7 @@ import (
 	"github.com/irdaislakhuafa/primeskills-test/src/business/domain"
 	"github.com/irdaislakhuafa/primeskills-test/src/entity"
 	"github.com/irdaislakhuafa/primeskills-test/src/utils/config"
+	"github.com/irdaislakhuafa/primeskills-test/src/utils/ctxkey"
 	"github.com/irdaislakhuafa/primeskills-test/src/utils/mailtemplates"
 	"github.com/irdaislakhuafa/primeskills-test/src/validation"
 )
@@ -31,6 +34,8 @@ type (
 		List(ctx context.Context, params validation.ListUserParams) ([]entity.User, entity.Pagination, error)
 		Login(ctx context.Context, params validation.LoginUserParams) (entity.User, string, error)
 		RetrieveRegisterVerification(ctx context.Context, params validation.RetrieveRegisterVerificationParams) (string, error)
+		RequestChangePassword(ctx context.Context, params validation.ChangePasswordParams) (string, error)
+		VerifyChangePassword(ctx context.Context, params validation.VerifyChangePasswordParams) (string, error)
 	}
 	user struct {
 		log        log.Interface
@@ -74,9 +79,12 @@ func (u *user) Create(ctx context.Context, params validation.CreateUserParams) (
 
 	m := mail.NewMessage()
 	m.SetHeaders(map[string][]string{
-		"From":    {u.cfg.Contacts.Email},
-		"To":      {result.Email},
-		"Subject": {strformat.TWE("Todo App Verification - {{ .Email }}", result)},
+		"From": {u.cfg.Contacts.Email},
+		"To":   {result.Email},
+		"Subject": {strformat.TWE("{{ .AppName }} Verification - {{ .Email }}", map[string]string{
+			"AppName": u.cfg.Meta.Title,
+			"Email":   result.Email,
+		})},
 	})
 
 	activationToken, err := cryptography.NewBcrypt().Hash([]byte(strformat.TWE("{{ .ID }}:{{ .Email }}", result)))
@@ -213,4 +221,130 @@ func (u *user) RetrieveRegisterVerification(ctx context.Context, params validati
 	}
 
 	return strformat.TWE("Succesfully verify your account. Now you can login to {{ .Title }}", u.cfg.Meta), nil
+}
+
+func (u *user) RequestChangePassword(ctx context.Context, params validation.ChangePasswordParams) (string, error) {
+	if err := u.val.StructCtx(ctx, params); err != nil {
+		err = validation.ExtractError(err, params)
+		return "", errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
+	}
+
+	user, err := u.dom.User.Get(ctx, entity.GetOneUserParams{Email: params.Email})
+	if err != nil {
+		return "", errors.NewWithCode(codes.CodeBadRequest, "User not registered or maybe has been deleted!")
+	}
+
+	otp, err := u.dom.Otp.Get(ctx, entity.GetOneOTPParams{
+		UserID:     user.ID,
+		IsUsed:     0,
+		ExpirateAt: time.Now(),
+	})
+	if err != nil {
+		if errCode := errors.GetCode(err); errCode != codes.CodeSQLRecordDoesNotExist {
+			return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+		}
+	} else {
+		return "", errors.NewWithCode(codes.CodeBadRequest, "You have otp code that has sent and not verified yet. You can send otp request again after %s for security reason!.", otp.ExpirateAt.Format(time.DateTime))
+	}
+
+	code := fmt.Sprint(time.Now().UnixNano())
+	expirateAt := time.Now().Add(time.Hour)
+	code = code[len(code)-4:]
+	plainCode := code
+	if hashed, err := cryptography.NewBcrypt().Hash([]byte(code)); err != nil {
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	} else {
+		code = string(hashed)
+	}
+
+	_, err = u.dom.Otp.Create(ctx, entity.CreateOTPParams{
+		UserID:     user.ID,
+		Code:       code,
+		ExpirateAt: expirateAt,
+	})
+	if err != nil {
+		return "", errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
+	}
+
+	m := mail.NewMessage()
+	m.SetHeaders(map[string][]string{
+		"From": {u.cfg.Contacts.Email},
+		"To":   {user.Email},
+		"Subject": {strformat.TWE("{{ .AppName }} Change Password - {{ .Email }}", map[string]string{
+			"AppName": u.cfg.Meta.Title,
+			"Email":   user.Email,
+		})},
+	})
+
+	mBody, err := mailtemplates.ReadAndParse(mailtemplates.RESET_PASSWORD, map[string]any{
+		"AppName":    u.cfg.Meta.Title,
+		"Name":       user.Name,
+		"ExpirateAt": expirateAt.Format(time.DateTime) + " UTC",
+		"Code":       plainCode,
+		"Contacts":   u.cfg.Contacts,
+	})
+	if err != nil {
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	}
+
+	m.SetBody(header.ContentTypeHTML, mBody)
+
+	if err := u.smtpGoMail.DialAndSend(m); err != nil {
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	}
+
+	return "The otp code has been sent to your email, please use it to change yout password.", nil
+}
+
+func (u *user) VerifyChangePassword(ctx context.Context, params validation.VerifyChangePasswordParams) (string, error) {
+	if err := u.val.StructCtx(ctx, params); err != nil {
+		err = validation.ExtractError(err, params)
+		return "", errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
+	}
+
+	user, err := u.dom.User.Get(ctx, entity.GetOneUserParams{Email: params.Email})
+	if err != nil {
+		return "", errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error())
+	}
+
+	otp, err := u.dom.Otp.Get(ctx, entity.GetOneOTPParams{UserID: user.ID, IsUsed: 0, ExpirateAt: time.Now()})
+	if err != nil {
+		if errCode := errors.GetCode(err); errCode == codes.CodeSQLRecordDoesNotExist {
+			return "", errors.NewWithCode(codes.CodeBadRequest, "You doesn't have any otp request!")
+		}
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	}
+
+	bcrypt := cryptography.NewBcrypt()
+	if err := bcrypt.Compare([]byte(params.OtpCode), []byte(otp.Code)); err != nil {
+		return "", errors.NewWithCode(codes.CodeBadRequest, "Otp code is Invalid")
+	}
+
+	pwd, err := bcrypt.Hash([]byte(params.NewPassword))
+	if err != nil {
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	}
+
+	err = u.dom.User.ChangePassword(ctx, entity.ChangePasswordUserParams{
+		ID:        user.ID,
+		Password:  string(pwd),
+		UpdatedAt: sql.NullTime{Valid: true, Time: time.Now()},
+		UpdatedBy: sql.NullString{Valid: true, String: convert.ToSafeValue[string](ctx.Value(ctxkey.USER_ID))},
+	})
+	if err != nil {
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	}
+
+	_, err = u.dom.Otp.Update(ctx, entity.UpdateOTPParams{
+		Code:      otp.Code,
+		IsUsed:    1,
+		UpdatedAt: sql.NullTime{Valid: true, Time: time.Now()},
+		UpdatedBy: sql.NullString{Valid: true, String: convert.ToSafeValue[string](ctx.Value(ctxkey.USER_ID))},
+		ID:        otp.ID,
+	})
+	if err != nil {
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	}
+
+	return "Succesfully change your password!", nil
 }

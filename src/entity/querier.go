@@ -10,18 +10,22 @@ import (
 )
 
 type Querier interface {
+	ChangePasswordUser(ctx context.Context, arg ChangePasswordUserParams) (sql.Result, error)
 	CountTodo(ctx context.Context, arg CountTodoParams) (int64, error)
 	CountTodoHistories(ctx context.Context, arg CountTodoHistoriesParams) (int64, error)
 	CountUser(ctx context.Context, arg CountUserParams) (int64, error)
+	CreateOTP(ctx context.Context, arg CreateOTPParams) (sql.Result, error)
 	CreateTodo(ctx context.Context, arg CreateTodoParams) (sql.Result, error)
 	CreateTodoHistory(ctx context.Context, arg CreateTodoHistoryParams) (sql.Result, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error)
+	GetOneOTP(ctx context.Context, arg GetOneOTPParams) (GetOneOTPRow, error)
 	GetOneTodo(ctx context.Context, arg GetOneTodoParams) (GetOneTodoRow, error)
 	GetOneUser(ctx context.Context, arg GetOneUserParams) (GetOneUserRow, error)
 	ListTodo(ctx context.Context, arg ListTodoParams) ([]ListTodoRow, error)
 	ListTodoHistories(ctx context.Context, arg ListTodoHistoriesParams) ([]TodoHistory, error)
 	ListUser(ctx context.Context, arg ListUserParams) ([]ListUserRow, error)
 	UpdateActivationUser(ctx context.Context, arg UpdateActivationUserParams) (sql.Result, error)
+	UpdateOTP(ctx context.Context, arg UpdateOTPParams) (sql.Result, error)
 	UpdateTodo(ctx context.Context, arg UpdateTodoParams) (sql.Result, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Result, error)
 }

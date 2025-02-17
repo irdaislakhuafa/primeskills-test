@@ -9,6 +9,22 @@ import (
 	"time"
 )
 
+type Otp struct {
+	ID int64 `db:"id" json:"id"`
+	// refer to users.id
+	UserID     int64          `db:"user_id" json:"user_id"`
+	Code       string         `db:"code" json:"code"`
+	IsUsed     int8           `db:"is_used" json:"is_used"`
+	ExpirateAt time.Time      `db:"expirate_at" json:"expirate_at"`
+	CreatedAt  time.Time      `db:"created_at" json:"created_at"`
+	CreatedBy  string         `db:"created_by" json:"created_by"`
+	UpdatedAt  sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy  sql.NullString `db:"updated_by" json:"updated_by"`
+	DeletedAt  sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	DeletedBy  sql.NullString `db:"deleted_by" json:"deleted_by"`
+	IsDeleted  int8           `db:"is_deleted" json:"is_deleted"`
+}
+
 type Todo struct {
 	ID int64 `db:"id" json:"id"`
 	// refer to users.id

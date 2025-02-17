@@ -96,3 +96,35 @@ func (r *rest) RetrieveRegisterVerification(ctx *gin.Context) {
 
 	ctx.String(200, msg)
 }
+
+func (r *rest) ChangePasswordUser(ctx *gin.Context) {
+	body := validation.ChangePasswordParams{}
+	if err := ctx.BindJSON(&body); err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error()))
+		return
+	}
+
+	msg, err := r.u.User.RequestChangePassword(ctx.Request.Context(), body)
+	if err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(errors.GetCode(err), "%s", err.Error()))
+		return
+	}
+
+	r.httpRespSuccess(ctx, codes.CodeSuccess, msg, nil)
+}
+
+func (r *rest) VerifyChangePasswordUser(ctx *gin.Context) {
+	body := validation.VerifyChangePasswordParams{}
+	if err := ctx.BindJSON(&body); err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error()))
+		return
+	}
+
+	msg, err := r.u.User.VerifyChangePassword(ctx, body)
+	if err != nil {
+		r.httpRespError(ctx, errors.NewWithCode(errors.GetCode(err), "%s", err.Error()))
+		return
+	}
+
+	r.httpRespSuccess(ctx, codes.CodeSuccess, msg, nil)
+}

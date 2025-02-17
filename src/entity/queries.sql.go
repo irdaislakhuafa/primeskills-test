@@ -11,6 +11,30 @@ import (
 	"time"
 )
 
+const changePasswordUser = `-- name: ChangePasswordUser :execresult
+UPDATE ` + "`" + `users` + "`" + ` SET
+ ` + "`" + `password` + "`" + ` = ?,
+ ` + "`" + `updated_at` + "`" + ` = ?,
+ ` + "`" + `updated_by` + "`" + ` = ?
+WHERE ` + "`" + `id` + "`" + ` = ?
+`
+
+type ChangePasswordUserParams struct {
+	Password  string         `db:"password" json:"password"`
+	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy sql.NullString `db:"updated_by" json:"updated_by"`
+	ID        int64          `db:"id" json:"id"`
+}
+
+func (q *Queries) ChangePasswordUser(ctx context.Context, arg ChangePasswordUserParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, changePasswordUser,
+		arg.Password,
+		arg.UpdatedAt,
+		arg.UpdatedBy,
+		arg.ID,
+	)
+}
+
 const countTodo = `-- name: CountTodo :one
 SELECT
  COUNT(` + "`" + `id` + "`" + `) AS total
@@ -95,6 +119,34 @@ func (q *Queries) CountUser(ctx context.Context, arg CountUserParams) (int64, er
 	return count, err
 }
 
+const createOTP = `-- name: CreateOTP :execresult
+INSERT INTO ` + "`" + `otp` + "`" + ` (
+ ` + "`" + `user_id` + "`" + `,
+ ` + "`" + `code` + "`" + `,
+ ` + "`" + `expirate_at` + "`" + `,
+ ` + "`" + `created_at` + "`" + `,
+ ` + "`" + `created_by` + "`" + `
+) VALUES (?, ?, ?, ?, ?)
+`
+
+type CreateOTPParams struct {
+	UserID     int64     `db:"user_id" json:"user_id"`
+	Code       string    `db:"code" json:"code"`
+	ExpirateAt time.Time `db:"expirate_at" json:"expirate_at"`
+	CreatedAt  time.Time `db:"created_at" json:"created_at"`
+	CreatedBy  string    `db:"created_by" json:"created_by"`
+}
+
+func (q *Queries) CreateOTP(ctx context.Context, arg CreateOTPParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createOTP,
+		arg.UserID,
+		arg.Code,
+		arg.ExpirateAt,
+		arg.CreatedAt,
+		arg.CreatedBy,
+	)
+}
+
 const createTodo = `-- name: CreateTodo :execresult
 INSERT INTO ` + "`" + `todos` + "`" + ` (
  ` + "`" + `user_id` + "`" + `,
@@ -172,6 +224,78 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 		arg.CreatedAt,
 		arg.CreatedBy,
 	)
+}
+
+const getOneOTP = `-- name: GetOneOTP :one
+SELECT
+ ` + "`" + `id` + "`" + `,
+ ` + "`" + `user_id` + "`" + `,
+ ` + "`" + `code` + "`" + `,
+ ` + "`" + `expirate_at` + "`" + `,
+ ` + "`" + `is_used` + "`" + `,
+ ` + "`" + `created_at` + "`" + `,
+ ` + "`" + `created_by` + "`" + `,
+ ` + "`" + `updated_at` + "`" + `,
+ ` + "`" + `updated_by` + "`" + `,
+ ` + "`" + `deleted_at` + "`" + `,
+ ` + "`" + `deleted_by` + "`" + `,
+ ` + "`" + `is_deleted` + "`" + `
+FROM
+ ` + "`" + `otp` + "`" + `
+WHERE
+ (` + "`" + `id` + "`" + ` LIKE ? OR ` + "`" + `user_id` + "`" + ` LIKE ?)
+ AND ` + "`" + `is_deleted` + "`" + ` = ?
+ AND ` + "`" + `expirate_at` + "`" + ` > ?
+ AND ` + "`" + `is_used` + "`" + ` = ?
+`
+
+type GetOneOTPParams struct {
+	ID         int64     `db:"id" json:"id"`
+	UserID     int64     `db:"user_id" json:"user_id"`
+	IsDeleted  int8      `db:"is_deleted" json:"is_deleted"`
+	ExpirateAt time.Time `db:"expirate_at" json:"expirate_at"`
+	IsUsed     int8      `db:"is_used" json:"is_used"`
+}
+
+type GetOneOTPRow struct {
+	ID         int64          `db:"id" json:"id"`
+	UserID     int64          `db:"user_id" json:"user_id"`
+	Code       string         `db:"code" json:"code"`
+	ExpirateAt time.Time      `db:"expirate_at" json:"expirate_at"`
+	IsUsed     int8           `db:"is_used" json:"is_used"`
+	CreatedAt  time.Time      `db:"created_at" json:"created_at"`
+	CreatedBy  string         `db:"created_by" json:"created_by"`
+	UpdatedAt  sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy  sql.NullString `db:"updated_by" json:"updated_by"`
+	DeletedAt  sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	DeletedBy  sql.NullString `db:"deleted_by" json:"deleted_by"`
+	IsDeleted  int8           `db:"is_deleted" json:"is_deleted"`
+}
+
+func (q *Queries) GetOneOTP(ctx context.Context, arg GetOneOTPParams) (GetOneOTPRow, error) {
+	row := q.db.QueryRowContext(ctx, getOneOTP,
+		arg.ID,
+		arg.UserID,
+		arg.IsDeleted,
+		arg.ExpirateAt,
+		arg.IsUsed,
+	)
+	var i GetOneOTPRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Code,
+		&i.ExpirateAt,
+		&i.IsUsed,
+		&i.CreatedAt,
+		&i.CreatedBy,
+		&i.UpdatedAt,
+		&i.UpdatedBy,
+		&i.DeletedAt,
+		&i.DeletedBy,
+		&i.IsDeleted,
+	)
+	return i, err
 }
 
 const getOneTodo = `-- name: GetOneTodo :one
@@ -563,6 +687,42 @@ type UpdateActivationUserParams struct {
 
 func (q *Queries) UpdateActivationUser(ctx context.Context, arg UpdateActivationUserParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, updateActivationUser, arg.IsActive, arg.ID)
+}
+
+const updateOTP = `-- name: UpdateOTP :execresult
+UPDATE ` + "`" + `otp` + "`" + ` SET
+ ` + "`" + `code` + "`" + ` = ?,
+ ` + "`" + `is_used` + "`" + ` = ?,
+ ` + "`" + `updated_at` + "`" + ` = ?,
+ ` + "`" + `updated_by` + "`" + ` = ?,
+ ` + "`" + `deleted_at` + "`" + ` = ?,
+ ` + "`" + `deleted_by` + "`" + ` = ?,
+ ` + "`" + `is_deleted` + "`" + ` = ?
+WHERE ` + "`" + `id` + "`" + ` = ?
+`
+
+type UpdateOTPParams struct {
+	Code      string         `db:"code" json:"code"`
+	IsUsed    int8           `db:"is_used" json:"is_used"`
+	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
+	UpdatedBy sql.NullString `db:"updated_by" json:"updated_by"`
+	DeletedAt sql.NullTime   `db:"deleted_at" json:"deleted_at"`
+	DeletedBy sql.NullString `db:"deleted_by" json:"deleted_by"`
+	IsDeleted int8           `db:"is_deleted" json:"is_deleted"`
+	ID        int64          `db:"id" json:"id"`
+}
+
+func (q *Queries) UpdateOTP(ctx context.Context, arg UpdateOTPParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updateOTP,
+		arg.Code,
+		arg.IsUsed,
+		arg.UpdatedAt,
+		arg.UpdatedBy,
+		arg.DeletedAt,
+		arg.DeletedBy,
+		arg.IsDeleted,
+		arg.ID,
+	)
 }
 
 const updateTodo = `-- name: UpdateTodo :execresult
