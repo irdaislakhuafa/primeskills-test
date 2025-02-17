@@ -27,8 +27,6 @@ jobs:
    steps:
      - name: Clone repo
        uses: actions/checkout@v4
-     - name: Setup docker
-       uses: docker/setup-docker-action@v4
      - name: Setup ssh
        run: |
         # setup ssh env
