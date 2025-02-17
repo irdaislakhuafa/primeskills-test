@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/irdaislakhuafa/go-sdk/codes"
 	"github.com/irdaislakhuafa/go-sdk/convert"
 	"github.com/irdaislakhuafa/go-sdk/errors"
@@ -51,6 +52,11 @@ func (u *user) Create(ctx context.Context, params entity.CreateUserParams) (enti
 
 	r, err := queries.CreateUser(ctx, params)
 	if err != nil {
+		if err, isOk := err.(*mysql.MySQLError); isOk {
+			if err.Number == 1062 {
+				return entity.User{}, errors.NewWithCode(codes.CodeBadRequest, "Email already registered!")
+			}
+		}
 		return entity.User{}, errors.NewWithCode(codes.CodeSQLTxExec, "%s", err.Error())
 	}
 
