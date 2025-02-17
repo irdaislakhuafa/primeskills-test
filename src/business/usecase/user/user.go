@@ -182,6 +182,7 @@ func (u *user) Login(ctx context.Context, params validation.LoginUserParams) (en
 		return entity.User{}, "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
 	}
 
+	user.Password = ""
 	return user, token, nil
 }
 
