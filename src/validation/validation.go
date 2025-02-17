@@ -51,12 +51,12 @@ type (
 		UserID      int64  `json:"user_id" validate:"required"`
 		Title       string `json:"title" validate:"required,min=1,max=255"`
 		Description string `json:"description" validate:""`
-		Status      string `json:"status" validate:"required,oneof=complete cancel hold todo"`
+		Status      string `json:"status" validate:"required,oneof=complete cancel hold todo in_progress"`
 	}
 
 	ListTodoParams struct {
 		UserID    int64  `json:"user_id" form:"user_id" validate:"number,required"`
-		Status    string `json:"status" form:"status" validate:""`
+		Status    string `json:"status" form:"status" validate:"oneof=complete cancel hold todo in_progress"`
 		Search    string `json:"search" form:"search" validate:""`
 		Page      int64  `json:"page" form:"page" validate:""`
 		Limit     int64  `json:"limit" form:"limit" validate:""`
@@ -64,9 +64,9 @@ type (
 	}
 
 	UpdateTodoParams struct {
-		Title       string `db:"title" json:"title"`
-		Description string `db:"description" json:"description"`
-		Status      string `db:"status" json:"status"`
+		Title       string `db:"title" json:"title" validate:"max=255,min=0"`
+		Description string `db:"description" json:"description" validate:""`
+		Status      string `db:"status" json:"status" validate:"oneof=complete cancel hold todo in_progress"`
 		IsDeleted   int8   `db:"is_deleted" json:"is_deleted"`
 		ID          int64  `db:"id" json:"id"`
 	}
