@@ -241,6 +241,7 @@ SELECT
  ` + "`" + `name` + "`" + `,
  ` + "`" + `email` + "`" + `,
  ` + "`" + `password` + "`" + `,
+ ` + "`" + `is_active` + "`" + `,
  ` + "`" + `created_at` + "`" + `,
  ` + "`" + `created_by` + "`" + `,
  ` + "`" + `updated_at` + "`" + `,
@@ -266,6 +267,7 @@ type GetOneUserRow struct {
 	Name      string         `db:"name" json:"name"`
 	Email     string         `db:"email" json:"email"`
 	Password  string         `db:"password" json:"password"`
+	IsActive  int8           `db:"is_active" json:"is_active"`
 	CreatedAt time.Time      `db:"created_at" json:"created_at"`
 	CreatedBy string         `db:"created_by" json:"created_by"`
 	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
@@ -283,6 +285,7 @@ func (q *Queries) GetOneUser(ctx context.Context, arg GetOneUserParams) (GetOneU
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.IsActive,
 		&i.CreatedAt,
 		&i.CreatedBy,
 		&i.UpdatedAt,
@@ -465,6 +468,7 @@ SELECT
  ` + "`" + `id` + "`" + `,
  ` + "`" + `name` + "`" + `,
  ` + "`" + `email` + "`" + `,
+ ` + "`" + `is_active` + "`" + `,
  ` + "`" + `created_at` + "`" + `,
  ` + "`" + `created_by` + "`" + `,
  ` + "`" + `updated_at` + "`" + `,
@@ -497,6 +501,7 @@ type ListUserRow struct {
 	ID        int64          `db:"id" json:"id"`
 	Name      string         `db:"name" json:"name"`
 	Email     string         `db:"email" json:"email"`
+	IsActive  int8           `db:"is_active" json:"is_active"`
 	CreatedAt time.Time      `db:"created_at" json:"created_at"`
 	CreatedBy string         `db:"created_by" json:"created_by"`
 	UpdatedAt sql.NullTime   `db:"updated_at" json:"updated_at"`
@@ -525,6 +530,7 @@ func (q *Queries) ListUser(ctx context.Context, arg ListUserParams) ([]ListUserR
 			&i.ID,
 			&i.Name,
 			&i.Email,
+			&i.IsActive,
 			&i.CreatedAt,
 			&i.CreatedBy,
 			&i.UpdatedAt,
@@ -544,6 +550,19 @@ func (q *Queries) ListUser(ctx context.Context, arg ListUserParams) ([]ListUserR
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateActivationUser = `-- name: UpdateActivationUser :execresult
+UPDATE ` + "`" + `users` + "`" + ` SET ` + "`" + `is_active` + "`" + ` = ? WHERE ` + "`" + `id` + "`" + ` = ?
+`
+
+type UpdateActivationUserParams struct {
+	IsActive int8  `db:"is_active" json:"is_active"`
+	ID       int64 `db:"id" json:"id"`
+}
+
+func (q *Queries) UpdateActivationUser(ctx context.Context, arg UpdateActivationUserParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updateActivationUser, arg.IsActive, arg.ID)
 }
 
 const updateTodo = `-- name: UpdateTodo :execresult

@@ -7,6 +7,7 @@ import (
 	"github.com/irdaislakhuafa/go-sdk/codes"
 	"github.com/irdaislakhuafa/go-sdk/errors"
 	"github.com/irdaislakhuafa/go-sdk/files"
+	"github.com/irdaislakhuafa/go-sdk/smtp"
 )
 
 type (
@@ -14,6 +15,8 @@ type (
 		Title       string
 		Description string
 		Version     string
+		Protocol    string
+		Port        string
 		Host        string
 		BasePath    string
 	}
@@ -51,13 +54,19 @@ type (
 		ExpirationMinutes int64
 	}
 
+	Contacts struct {
+		Email string
+	}
+
 	Config struct {
-		Meta    Meta
-		Gin     Gin
-		Log     Log
-		DB      DB
-		Secrets Secrets
-		Token   Token
+		Meta     Meta
+		Gin      Gin
+		Log      Log
+		DB       DB
+		Secrets  Secrets
+		Token    Token
+		SMTP     smtp.Config
+		Contacts Contacts
 	}
 )
 

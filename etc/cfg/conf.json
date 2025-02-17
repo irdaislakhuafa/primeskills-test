@@ -3,6 +3,8 @@
     "Title": "Todo List App",
     "Description": "A Simple Todo List App",
     "Version": "v0.0.01",
+    "Protocol": "http",
+    "Port": "8000",
     "Host": "127.0.0.1",
     "BasePath": "/"
   },
@@ -32,5 +34,14 @@
   },
   "Token": {
     "ExpirationMinutes": 43200
+  },
+  "SMTP": {
+    "Username": "aaead9b02042be",
+    "Password": "ae70029e982dc2",
+    "Host": "sandbox.smtp.mailtrap.io",
+    "Port": 2525
+  },
+  "Contacts": {
+    "Email": "irdhaislakhuafa@gmail.com"
   }
 }

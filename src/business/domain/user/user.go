@@ -19,6 +19,7 @@ type (
 		Update(ctx context.Context, params entity.UpdateUserParams) (entity.User, error)
 		List(ctx context.Context, params entity.ListUserParams) ([]entity.User, entity.Pagination, error)
 		Get(ctx context.Context, params entity.GetOneUserParams) (entity.User, error)
+		UpdateActivationUser(ctx context.Context, params entity.UpdateActivationUserParams) error
 	}
 	user struct {
 		log     log.Interface
@@ -132,6 +133,7 @@ func (u *user) List(ctx context.Context, params entity.ListUserParams) ([]entity
 			ID:        row.ID,
 			Name:      row.Name,
 			Email:     row.Email,
+			IsActive:  row.IsActive,
 			CreatedAt: row.CreatedAt,
 			CreatedBy: row.CreatedBy,
 			UpdatedAt: row.UpdatedAt,
@@ -168,6 +170,7 @@ func (u *user) Get(ctx context.Context, params entity.GetOneUserParams) (entity.
 		ID:        row.ID,
 		Name:      row.Name,
 		Email:     row.Email,
+		IsActive:  row.IsActive,
 		CreatedAt: row.CreatedAt,
 		CreatedBy: row.CreatedBy,
 		UpdatedAt: row.UpdatedAt,
@@ -179,4 +182,22 @@ func (u *user) Get(ctx context.Context, params entity.GetOneUserParams) (entity.
 	}
 
 	return result, nil
+}
+
+func (u *user) UpdateActivationUser(ctx context.Context, params entity.UpdateActivationUserParams) error {
+	tx, err := u.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return errors.NewWithCode(codes.CodeSQLTxBegin, "%s", err.Error())
+	}
+	defer tx.Rollback()
+
+	if _, err := u.queries.WithTx(tx).UpdateActivationUser(ctx, params); err != nil {
+		return errors.NewWithCode(codes.CodeSQLTxExec, "%s", err.Error())
+	}
+
+	if err := tx.Commit(); err != nil {
+		return errors.NewWithCode(codes.CodeSQLTxExec, "%s", err.Error())
+	}
+
+	return nil
 }

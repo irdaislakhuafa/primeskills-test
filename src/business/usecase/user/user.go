@@ -5,16 +5,22 @@ import (
 	"fmt"
 	"time"
 
+	mail "github.com/go-mail/gomail"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/irdaislakhuafa/go-sdk/auth"
 	"github.com/irdaislakhuafa/go-sdk/codes"
 	"github.com/irdaislakhuafa/go-sdk/cryptography"
 	"github.com/irdaislakhuafa/go-sdk/errors"
+	"github.com/irdaislakhuafa/go-sdk/header"
 	"github.com/irdaislakhuafa/go-sdk/log"
+	"github.com/irdaislakhuafa/go-sdk/operator"
+	"github.com/irdaislakhuafa/go-sdk/smtp"
+	"github.com/irdaislakhuafa/go-sdk/strformat"
 	"github.com/irdaislakhuafa/primeskills-test/src/business/domain"
 	"github.com/irdaislakhuafa/primeskills-test/src/entity"
 	"github.com/irdaislakhuafa/primeskills-test/src/utils/config"
+	"github.com/irdaislakhuafa/primeskills-test/src/utils/mailtemplates"
 	"github.com/irdaislakhuafa/primeskills-test/src/validation"
 )
 
@@ -24,21 +30,24 @@ type (
 		Update(ctx context.Context, params validation.UpdateUserParams) (entity.User, error)
 		List(ctx context.Context, params validation.ListUserParams) ([]entity.User, entity.Pagination, error)
 		Login(ctx context.Context, params validation.LoginUserParams) (entity.User, string, error)
+		RetrieveRegisterVerification(ctx context.Context, params validation.RetrieveRegisterVerificationParams) (string, error)
 	}
 	user struct {
-		log log.Interface
-		dom *domain.Domain
-		val *validator.Validate
-		cfg config.Config
+		log        log.Interface
+		dom        *domain.Domain
+		val        *validator.Validate
+		cfg        config.Config
+		smtpGoMail smtp.GoMailInterface
 	}
 )
 
-func Init(log log.Interface, dom *domain.Domain, val *validator.Validate, cfg config.Config) Interface {
+func Init(log log.Interface, dom *domain.Domain, val *validator.Validate, cfg config.Config, smtpGoMail smtp.GoMailInterface) Interface {
 	return &user{
-		log: log,
-		dom: dom,
-		val: val,
-		cfg: cfg,
+		log:        log,
+		dom:        dom,
+		val:        val,
+		cfg:        cfg,
+		smtpGoMail: smtpGoMail,
 	}
 }
 
@@ -62,6 +71,38 @@ func (u *user) Create(ctx context.Context, params validation.CreateUserParams) (
 	if err != nil {
 		return entity.User{}, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}
+
+	m := mail.NewMessage()
+	m.SetHeaders(map[string][]string{
+		"From":    {u.cfg.Contacts.Email},
+		"To":      {result.Email},
+		"Subject": {strformat.TWE("Todo App Verification - {{ .Email }}", result)},
+	})
+
+	activationToken, err := cryptography.NewBcrypt().Hash([]byte(strformat.TWE("{{ .ID }}:{{ .Email }}", result)))
+	if err != nil {
+		return entity.User{}, errors.NewWithCode(codes.CodeInternalServerError, "Cannot generate activation token")
+	}
+
+	mBody, err := mailtemplates.ReadAndParse(mailtemplates.REGISTER_VERIFICATION, map[string]any{
+		"AppName": u.cfg.Meta.Title,
+		"VerificationURL": strformat.TWE("{{ .Protocol }}://{{ .Host }}{{ .Port }}/api/v1/user/register/verify?uid={{ .UID }}&activation_token={{ .ActivationToken }}", map[string]any{
+			"Protocol":        u.cfg.Meta.Protocol,
+			"Host":            u.cfg.Meta.Host,
+			"UID":             result.ID,
+			"ActivationToken": string(activationToken),
+			"Port":            operator.Ternary(u.cfg.Meta.Port == "", "", ":"+u.cfg.Meta.Port),
+		}),
+		"Contacts": u.cfg.Contacts,
+	})
+	if err != nil {
+		return entity.User{}, errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	}
+	m.SetBody(header.ContentTypeHTML, mBody)
+	if err := u.smtpGoMail.DialAndSend(m); err != nil {
+		return entity.User{}, errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	}
+
 	return result, nil
 }
 
@@ -120,6 +161,10 @@ func (u *user) Login(ctx context.Context, params validation.LoginUserParams) (en
 		}
 	}
 
+	if user.IsActive == 0 {
+		return entity.User{}, "", errors.NewWithCode(codes.CodeUnauthorized, "Your account is not active, you need to verify your account first!")
+	}
+
 	if err := cryptography.NewBcrypt().Compare([]byte(params.Password), []byte(user.Password)); err != nil {
 		return entity.User{}, "", errors.NewWithCode(codes.CodeUnauthorized, "Wrong password")
 	}
@@ -138,4 +183,32 @@ func (u *user) Login(ctx context.Context, params validation.LoginUserParams) (en
 	}
 
 	return user, token, nil
+}
+
+func (u *user) RetrieveRegisterVerification(ctx context.Context, params validation.RetrieveRegisterVerificationParams) (string, error) {
+	if err := u.val.StructCtx(ctx, params); err != nil {
+		return "", errors.NewWithCode(codes.CodeBadRequest, "Request invalid")
+	}
+	user, err := u.dom.User.Get(ctx, entity.GetOneUserParams{
+		ID:        params.UID,
+		IsDeleted: 0,
+	})
+	if err != nil {
+		if code := errors.GetCode(err); code == codes.CodeSQLRecordDoesNotExist {
+			return "", errors.NewWithCode(codes.CodeBadRequest, "Request activation not found")
+		}
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "Cannot verify your account")
+	}
+
+	token := strformat.TWE("{{.ID}}:{{.Email}}", user)
+	err = cryptography.NewBcrypt().Compare([]byte(token), []byte(params.ActivationToken))
+	if err != nil {
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "Cannot verify your account. Your activation token is invalid!")
+	}
+
+	if err := u.dom.User.UpdateActivationUser(ctx, entity.UpdateActivationUserParams{IsActive: 1, ID: user.ID}); err != nil {
+		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
+	}
+
+	return strformat.TWE("Succesfully verify your account. Now you can login to {{ .Title }}", u.cfg.Meta), nil
 }

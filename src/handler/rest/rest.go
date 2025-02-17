@@ -111,6 +111,7 @@ func (r *rest) Register() {
 	{
 
 		v1.POST("/user/register", r.CreateUser)
+		v1.GET("/user/register/verify", r.RetrieveRegisterVerification)
 		v1.POST("/user/login", r.LoginUser)
 
 		user := v1.Group("/users", r.addJwtAuth)

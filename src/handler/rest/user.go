@@ -80,3 +80,19 @@ func (r *rest) LoginUser(ctx *gin.Context) {
 
 	r.httpRespSuccess(ctx, codes.CodeSuccess, map[string]any{"user": result, "token": token}, nil)
 }
+
+func (r *rest) RetrieveRegisterVerification(ctx *gin.Context) {
+	body := validation.RetrieveRegisterVerificationParams{}
+	if err := ctx.BindQuery(&body); err != nil {
+		ctx.String(200, "Invalid Request")
+		return
+	}
+
+	msg, err := r.u.User.RetrieveRegisterVerification(ctx, body)
+	if err != nil {
+		ctx.String(400, err.Error())
+		return
+	}
+
+	ctx.String(200, msg)
+}
