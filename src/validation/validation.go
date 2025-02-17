@@ -7,7 +7,6 @@ import (
 	"github.com/irdaislakhuafa/go-sdk/codes"
 	"github.com/irdaislakhuafa/go-sdk/errors"
 	"github.com/irdaislakhuafa/go-sdk/strformat"
-	// "github.com/irdaislakhuafa/primeskills-test/src/entity"
 )
 
 type (
@@ -29,8 +28,8 @@ type (
 		Page      int32  `json:"page" form:"page"`
 	}
 	LoginUserParams struct {
-		Email    string `json:"email" validate:"email,max=255,min=0"`
-		Password string `json:"password" validate:"min=8,max=255"`
+		Email    string `json:"email" validate:"required,email,max=255,min=0"`
+		Password string `json:"password" validate:"required,min=8,max=255"`
 	}
 
 	RetrieveRegisterVerificationParams struct {
