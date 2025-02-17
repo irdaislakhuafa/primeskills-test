@@ -15,7 +15,7 @@ func (r *rest) CreateTodo(ctx *gin.Context) {
 		r.httpRespError(ctx, errors.NewWithCode(codes.CodeBadRequest, "%s", err.Error()))
 	}
 
-	result, err := r.u.Todo.Create(ctx, body)
+	result, err := r.u.Todo.Create(ctx.Request.Context(), body)
 	if err != nil {
 		r.httpRespError(ctx, err)
 		return
@@ -55,7 +55,7 @@ func (r *rest) ListTodo(ctx *gin.Context) {
 		IsDeleted: int8(isDeleted),
 	}
 
-	results, pag, err := r.u.Todo.List(ctx, query)
+	results, pag, err := r.u.Todo.List(ctx.Request.Context(), query)
 	if err != nil {
 		r.httpRespError(ctx, err)
 		return
@@ -78,7 +78,7 @@ func (r *rest) UpdateTodo(ctx *gin.Context) {
 	}
 	body.ID = id
 
-	result, err := r.u.Todo.Update(ctx, body)
+	result, err := r.u.Todo.Update(ctx.Request.Context(), body)
 	if err != nil {
 		r.httpRespError(ctx, errors.NewWithCode(errors.GetCode(err), "%s", err.Error()))
 		return

@@ -140,6 +140,7 @@ func (u *user) List(ctx context.Context, params validation.ListUserParams) ([]en
 	if err != nil {
 		return nil, entity.Pagination{}, errors.NewWithCode(errors.GetCode(err), "%s", err.Error())
 	}
+
 	return results, pag, nil
 }
 

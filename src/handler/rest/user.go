@@ -16,7 +16,7 @@ func (r *rest) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	result, err := r.u.User.Create(ctx, body)
+	result, err := r.u.User.Create(ctx.Request.Context(), body)
 	if err != nil {
 		r.httpRespError(ctx, err)
 		return
@@ -40,7 +40,7 @@ func (r *rest) UpdateUser(ctx *gin.Context) {
 	}
 	r.log.Info(ctx, body)
 
-	result, err := r.u.User.Update(ctx, body)
+	result, err := r.u.User.Update(ctx.Request.Context(), body)
 	if err != nil {
 		r.httpRespError(ctx, err)
 		return
@@ -56,7 +56,7 @@ func (r *rest) ListUser(ctx *gin.Context) {
 		return
 	}
 
-	results, pag, err := r.u.User.List(ctx, body)
+	results, pag, err := r.u.User.List(ctx.Request.Context(), body)
 	if err != nil {
 		r.httpRespError(ctx, err)
 		return
@@ -72,7 +72,7 @@ func (r *rest) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	result, token, err := r.u.User.Login(ctx, body)
+	result, token, err := r.u.User.Login(ctx.Request.Context(), body)
 	if err != nil {
 		r.httpRespError(ctx, errors.NewWithCode(errors.GetCode(err), "%s", err.Error()))
 		return
@@ -88,7 +88,7 @@ func (r *rest) RetrieveRegisterVerification(ctx *gin.Context) {
 		return
 	}
 
-	msg, err := r.u.User.RetrieveRegisterVerification(ctx, body)
+	msg, err := r.u.User.RetrieveRegisterVerification(ctx.Request.Context(), body)
 	if err != nil {
 		ctx.String(400, err.Error())
 		return
