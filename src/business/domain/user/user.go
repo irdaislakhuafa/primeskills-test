@@ -20,6 +20,7 @@ type (
 		List(ctx context.Context, params entity.ListUserParams) ([]entity.User, entity.Pagination, error)
 		Get(ctx context.Context, params entity.GetOneUserParams) (entity.User, error)
 		UpdateActivationUser(ctx context.Context, params entity.UpdateActivationUserParams) error
+		ChangePassword(ctx context.Context, params entity.ChangePasswordUserParams) error
 	}
 	user struct {
 		log     log.Interface
@@ -197,6 +198,24 @@ func (u *user) UpdateActivationUser(ctx context.Context, params entity.UpdateAct
 
 	if err := tx.Commit(); err != nil {
 		return errors.NewWithCode(codes.CodeSQLTxExec, "%s", err.Error())
+	}
+
+	return nil
+}
+
+func (u *user) ChangePassword(ctx context.Context, params entity.ChangePasswordUserParams) error {
+	tx, err := u.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return errors.NewWithCode(codes.CodeSQLTxBegin, "%s", err.Error())
+	}
+	defer tx.Rollback()
+
+	if _, err := u.queries.WithTx(tx).ChangePasswordUser(ctx, params); err != nil {
+		return errors.NewWithCode(codes.CodeSQLTxExec, "%s", err.Error())
+	}
+
+	if err := tx.Commit(); err != nil {
+		return errors.NewWithCode(codes.CodeSQLTxCommit, "%s", err.Error())
 	}
 
 	return nil

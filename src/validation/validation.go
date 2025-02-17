@@ -37,6 +37,16 @@ type (
 		ActivationToken string `json:"activation_token" form:"activation_token" validate:"required"`
 	}
 
+	ChangePasswordParams struct {
+		Email string `json:"email" validate:"required,email"`
+	}
+
+	VerifyChangePasswordParams struct {
+		Email       string `json:"email" validate:"required,email"`
+		NewPassword string `json:"new_password" validate:"required"`
+		OtpCode     string `json:"otp_code" validate:"required,number"`
+	}
+
 	CreateTodoParams struct {
 		UserID      int64  `json:"user_id" validate:"required"`
 		Title       string `json:"title" validate:"required,min=1,max=255"`
@@ -77,6 +87,7 @@ var customMessages = map[string]string{
 	"gte":      "Field '{{ .Field }}' must be greater than or equal to {{ .Param }}",
 	"lte":      "Field '{{ .Field }}' must be less than or equal to {{ .Param }}",
 	"oneof":    "Field '{{ .Field }}' must be one of [{{ .Param }}]",
+	"number":   "Field '{{ .Field }}' must be a number format",
 }
 
 func ExtractError(err error, val any) error {

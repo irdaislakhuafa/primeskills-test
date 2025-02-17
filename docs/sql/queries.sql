@@ -12,6 +12,13 @@ UPDATE `users` SET
  `is_deleted` = ?
 WHERE `id` = ?;
 
+-- name: ChangePasswordUser :execresult
+UPDATE `users` SET
+ `password` = ?,
+ `updated_at` = ?,
+ `updated_by` = ?
+WHERE `id` = ?;
+
 -- name: GetOneUser :one
 SELECT
  `id`,
@@ -195,3 +202,44 @@ WHERE
  `is_deleted` = ?
  AND `todo_id` = ?;
 
+-- name: CreateOTP :execresult
+INSERT INTO `otp` (
+ `user_id`,
+ `code`,
+ `expirate_at`,
+ `created_at`,
+ `created_by`
+) VALUES (?, ?, ?, ?, ?);
+
+-- name: GetOneOTP :one
+SELECT
+ `id`,
+ `user_id`,
+ `code`,
+ `expirate_at`,
+ `is_used`,
+ `created_at`,
+ `created_by`,
+ `updated_at`,
+ `updated_by`,
+ `deleted_at`,
+ `deleted_by`,
+ `is_deleted`
+FROM
+ `otp`
+WHERE
+ (`id` LIKE ? OR `user_id` LIKE ?)
+ AND `is_deleted` = ?
+ AND `expirate_at` > ?
+ AND `is_used` = ?;
+
+-- name: UpdateOTP :execresult
+UPDATE `otp` SET
+ `code` = ?,
+ `is_used` = ?,
+ `updated_at` = ?,
+ `updated_by` = ?,
+ `deleted_at` = ?,
+ `deleted_by` = ?,
+ `is_deleted` = ?
+WHERE `id` = ?;
