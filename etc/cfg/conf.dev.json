@@ -3,6 +3,8 @@
     "Title": "Todo List App",
     "Description": "A Simple Todo List App",
     "Version": "v0.0.01",
+    "Protocol": "https",
+    "Port": "",
     "Host": "r0k5erlfmqgf.share.zrok.io",
     "BasePath": "/"
   },
@@ -26,5 +28,20 @@
       "DBName": "todo_app",
       "Ssl": false
     }
+  },
+  "Secrets": {
+    "Key": "32725339befdb101b8c2dc6c5d2048308fd06496eac0074703035325b063576c"
+  },
+  "Token": {
+    "ExpirationMinutes": 43200
+  },
+  "SMTP": {
+    "Username": "aaead9b02042be",
+    "Password": "ae70029e982dc2",
+    "Host": "sandbox.smtp.mailtrap.io",
+    "Port": 2525
+  },
+  "Contacts": {
+    "Email": "irdhaislakhuafa@gmail.com"
   }
 }

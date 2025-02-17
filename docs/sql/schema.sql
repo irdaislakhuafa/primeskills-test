@@ -50,6 +50,6 @@ CREATE TABLE `todo_histories` (
  `is_deleted` TINYINT NOT NULL DEFAULT 0
 );
 
--- dev:pending
+-- dev:done
 ALTER TABLE `users`
  ADD COLUMN `is_active` TINYINT NOT NULL DEFAULT 0 AFTER `email`;
