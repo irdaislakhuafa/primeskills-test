@@ -6,6 +6,7 @@ RUN ls -R * && mv -v etc/cfg/conf.dev.json etc/cfg/conf.json && go build -o main
 FROM alpine:3.21 AS runner
 WORKDIR /app
 COPY --from=builder /build/etc etc/
+COPY --from=builder /build/docs docs/
 COPY --from=builder /build/main .
 EXPOSE 8000
 CMD ["./main"]
