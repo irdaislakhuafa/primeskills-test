@@ -293,7 +293,7 @@ func (u *user) RequestChangePassword(ctx context.Context, params validation.Chan
 		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
 	}
 
-	return "The otp code has been sent to your email, please use it to change yout password.", nil
+	return "The otp code has been sent to your email, please use it to change your password.", nil
 }
 
 func (u *user) VerifyChangePassword(ctx context.Context, params validation.VerifyChangePasswordParams) (string, error) {

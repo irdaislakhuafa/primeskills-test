@@ -54,7 +54,7 @@ CREATE TABLE `todo_histories` (
 ALTER TABLE `users`
  ADD COLUMN `is_active` TINYINT NOT NULL DEFAULT 0 AFTER `email`;
 
--- dev:pending
+-- dev:done
 CREATE TABLE `otp` (
  `id` BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
  `user_id` BIGINT NOT NULL COMMENT 'refer to users.id',
