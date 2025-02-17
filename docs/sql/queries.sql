@@ -18,6 +18,7 @@ SELECT
  `name`,
  `email`,
  `password`,
+ `is_active`,
  `created_at`,
  `created_by`,
  `updated_at`,
@@ -36,6 +37,7 @@ SELECT
  `id`,
  `name`,
  `email`,
+ `is_active`,
  `created_at`,
  `created_by`,
  `updated_at`,
@@ -66,6 +68,9 @@ WHERE
   OR `email` LIKE CONCAT("%", ?, "%")
  )
  AND `is_deleted` = ?;
+ 
+-- name: UpdateActivationUser :execresult
+UPDATE `users` SET `is_active` = ? WHERE `id` = ?;
 
 
 -- name: CreateTodo :execresult

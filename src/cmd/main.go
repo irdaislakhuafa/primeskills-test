@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/irdaislakhuafa/go-sdk/log"
+	"github.com/irdaislakhuafa/go-sdk/smtp"
 	"github.com/irdaislakhuafa/go-sdk/strformat"
 	"github.com/irdaislakhuafa/primeskills-test/src/business/domain"
 	"github.com/irdaislakhuafa/primeskills-test/src/business/usecase"
@@ -41,11 +42,14 @@ func main() {
 	// initialize queries
 	q := entity.New(db)
 
+	// initialize smtp
+	smtpGoMail := smtp.InitGoMail(cfg.SMTP)
+
 	// initialize domain
 	d := domain.Init(l, q, db)
 
 	// initialize usecase
-	u := usecase.Init(d, l, v, cfg)
+	u := usecase.Init(d, l, v, cfg, smtpGoMail)
 
 	// initialize api server
 	r := rest.Init(cfg, l, u)

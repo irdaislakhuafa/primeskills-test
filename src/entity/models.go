@@ -51,4 +51,5 @@ type User struct {
 	DeletedBy sql.NullString `db:"deleted_by" json:"deleted_by"`
 	IsDeleted int8           `db:"is_deleted" json:"is_deleted"`
 	Password  string         `db:"password" json:"password"`
+	IsActive  int8           `db:"is_active" json:"is_active"`
 }

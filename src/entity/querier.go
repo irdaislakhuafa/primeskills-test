@@ -21,6 +21,7 @@ type Querier interface {
 	ListTodo(ctx context.Context, arg ListTodoParams) ([]ListTodoRow, error)
 	ListTodoHistories(ctx context.Context, arg ListTodoHistoriesParams) ([]TodoHistory, error)
 	ListUser(ctx context.Context, arg ListUserParams) ([]ListUserRow, error)
+	UpdateActivationUser(ctx context.Context, arg UpdateActivationUserParams) (sql.Result, error)
 	UpdateTodo(ctx context.Context, arg UpdateTodoParams) (sql.Result, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Result, error)
 }

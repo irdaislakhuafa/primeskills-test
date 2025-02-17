@@ -32,11 +32,11 @@ CREATE TABLE `todos` (
 ALTER TABLE `users`
  ADD COLUMN `password` VARCHAR(255) NOT NULL AFTER `email`;
 
--- dev:pending
+-- dev:done
 UPDATE `todos` SET `description` = '' WHERE `description` IS NULL;
 ALTER TABLE `todos` MODIFY COLUMN `description` TEXT NOT NULL;
 
--- dev:pending
+-- dev:done
 CREATE TABLE `todo_histories` (
  `id` BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
  `todo_id` BIGINT NOT NULL COMMENT 'refer to todos.id',
@@ -49,3 +49,7 @@ CREATE TABLE `todo_histories` (
  `deleted_by` VARCHAR(255) NULL,
  `is_deleted` TINYINT NOT NULL DEFAULT 0
 );
+
+-- dev:pending
+ALTER TABLE `users`
+ ADD COLUMN `is_active` TINYINT NOT NULL DEFAULT 0 AFTER `email`;

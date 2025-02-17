@@ -33,6 +33,11 @@ type (
 		Password string `json:"password" validate:"min=8,max=255"`
 	}
 
+	RetrieveRegisterVerificationParams struct {
+		UID             int64  `json:"uid" form:"uid" validate:"required,number"`
+		ActivationToken string `json:"activation_token" form:"activation_token" validate:"required"`
+	}
+
 	CreateTodoParams struct {
 		UserID      int64  `json:"user_id" validate:"required"`
 		Title       string `json:"title" validate:"required,min=1,max=255"`
