@@ -7,10 +7,10 @@ A simple todo list app ever, no more forgot about your tasks.
 ├── deploy/ -- Dockerfiles configurations for multiple environment.
 ├── docker-compose.yaml -- To setup dev env and build docker images.  
 ├── docs/ -- Store assets and docs for app.
-│   ├── sql -- Store sql files like schema and queries for app.
-│   └── templates -- For static file templates like email templates and others.
+│   ├── sql/ -- Store sql files like schema and queries for app.
+│   └── templates/ -- For static file templates like email templates and others.
 ├── etc/ -- Other configuration for app like app and env configurations for multiple server env.
-│   └── cfg -- Configurations dir
+│   └── cfg/ -- Configurations dir
 ├── go.mod
 ├── go.sum
 ├── README.md
