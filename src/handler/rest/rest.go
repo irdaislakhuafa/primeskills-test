@@ -178,7 +178,6 @@ func (r *rest) addJwtAuth(ctx *gin.Context) {
 		return
 	}
 
-	r.log.Debug(ctx, claims)
 	ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), ctxkey.USER_ID, claims.UID))
 	ctx.Next()
 }
