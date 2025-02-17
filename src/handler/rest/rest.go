@@ -120,14 +120,14 @@ func (r *rest) Register() {
 			user.GET("/", r.ListUser)
 		}
 
-		todo := v1.Group("/todos")
+		todo := v1.Group("/todos", r.addJwtAuth)
 		{
 			todo.POST("/", r.CreateTodo)
 			todo.GET("/", r.ListTodo)
 			todo.POST("/:id", r.UpdateTodo)
 		}
 
-		todoHistory := v1.Group("/todo/histories")
+		todoHistory := v1.Group("/todo/histories", r.addJwtAuth)
 		{
 			todoHistory.GET("/", r.ListTodoHistories)
 		}

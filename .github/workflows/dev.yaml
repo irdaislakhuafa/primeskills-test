@@ -48,7 +48,7 @@ jobs:
      - name: Test ssh
        run: ssh -F ${{ secrets.SSH_CONFIG_DIR }}/${{ secrets.SSH_CONFIG_FILE }} ${{ secrets.SSH_HOST }} "echo 'SSH Connected Successfully'"
      - uses: docker/setup-buildx-action@v3
-     - name: Setup docker
+     - name: Setup docker context
        run: |
         docker context create ${{ secrets.DOCKER_CTX }} --docker "host=ssh://${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" > /dev/null;
         docker context use ${{ secrets.DOCKER_CTX }}
