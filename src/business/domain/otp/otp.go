@@ -141,17 +141,18 @@ func (o *otp) Get(ctx context.Context, params entity.GetOneOTPParams) (entity.Ot
 	}
 
 	result := entity.Otp{
-		ID:        row.ID,
-		UserID:    row.UserID,
-		Code:      row.Code,
-		IsUsed:    row.IsUsed,
-		CreatedAt: row.CreatedAt,
-		CreatedBy: row.CreatedBy,
-		UpdatedAt: row.UpdatedAt,
-		UpdatedBy: row.UpdatedBy,
-		DeletedAt: row.DeletedAt,
-		DeletedBy: row.DeletedBy,
-		IsDeleted: row.IsDeleted,
+		ID:         row.ID,
+		UserID:     row.UserID,
+		Code:       row.Code,
+		IsUsed:     row.IsUsed,
+		ExpirateAt: row.ExpirateAt,
+		CreatedAt:  row.CreatedAt,
+		CreatedBy:  row.CreatedBy,
+		UpdatedAt:  row.UpdatedAt,
+		UpdatedBy:  row.UpdatedBy,
+		DeletedAt:  row.DeletedAt,
+		DeletedBy:  row.DeletedBy,
+		IsDeleted:  row.IsDeleted,
 	}
 	return result, nil
 }
