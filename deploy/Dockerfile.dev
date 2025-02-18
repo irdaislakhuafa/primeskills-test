@@ -1,7 +1,7 @@
 FROM golang:1.23.6-alpine AS builder
 WORKDIR /build
 COPY . .
-RUN ls -R * && mv -v etc/cfg/conf.dev.json etc/cfg/conf.json && go build -o main ./src/cmd/main.go
+RUN mv -v etc/cfg/conf.dev.json etc/cfg/conf.json && go build -o main ./src/cmd/main.go
 
 FROM alpine:3.21 AS runner
 WORKDIR /app
