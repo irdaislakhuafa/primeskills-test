@@ -8,6 +8,7 @@ go build -o main ./src/cmd/main.go
 
 FROM alpine:3.21 AS runner
 WORKDIR /app
+RUN apk update && apk add tzdata
 COPY --from=builder /build/etc etc/
 COPY --from=builder /build/docs docs/
 COPY --from=builder /build/main .
