@@ -244,7 +244,12 @@ func (u *user) RequestChangePassword(ctx context.Context, params validation.Chan
 			return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
 		}
 	} else {
-		return "", errors.NewWithCode(codes.CodeBadRequest, "You have otp code that has sent and not verified yet. You can send otp request again after %s for security reason!.", otp.ExpirateAt.Format(time.DateTime))
+		wib, _ := time.LoadLocation("Asia/Jakarta")
+		return "", errors.NewWithCode(
+			codes.CodeBadRequest,
+			"You have otp code that has sent and not verified yet. You can send otp request again after %s for security reason!.",
+			(operator.Ternary(wib == nil, otp.ExpirateAt, otp.ExpirateAt.In(wib))).Format(time.DateTime),
+		)
 	}
 
 	code := fmt.Sprint(time.Now().UnixNano())
@@ -276,12 +281,14 @@ func (u *user) RequestChangePassword(ctx context.Context, params validation.Chan
 		})},
 	})
 
+	wib, _ := time.LoadLocation("Asia/Jakarta")
 	mBody, err := mailtemplates.ReadAndParse(mailtemplates.RESET_PASSWORD, map[string]any{
-		"AppName":    u.cfg.Meta.Title,
-		"Name":       user.Name,
-		"ExpirateAt": expirateAt.Format(time.DateTime) + " UTC",
-		"Code":       plainCode,
-		"Contacts":   u.cfg.Contacts,
+		"AppName":       u.cfg.Meta.Title,
+		"Name":          user.Name,
+		"ExpirateAt":    (operator.Ternary(wib == nil, expirateAt, expirateAt.In(wib))).Format(time.DateTime),
+		"Code":          plainCode,
+		"Contacts":      u.cfg.Contacts,
+		"ExpirateAfter": "1 hour",
 	})
 	if err != nil {
 		return "", errors.NewWithCode(codes.CodeInternalServerError, "%s", err.Error())
