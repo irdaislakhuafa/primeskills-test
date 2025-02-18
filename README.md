@@ -2,7 +2,7 @@
 A simple todo list app ever, no more forgot about your tasks.
 
 ## Usages
-- Documentation: [docs](https://orange-eclipse-673431.postman.co/workspace/My-Workspace~5dc20d42-c79f-4b7e-84e8-8c30523af3a3/collection/17180185-7d1f2d43-f261-40d9-b529-1f924ef9f24c?action=share&creator=17180185&active-environment=17180185-966fc0d0-4a1d-40f3-8760-8f74d5b027e2)
+- Documentation: [docs](https://www.postman.com/orange-eclipse-673431/workspace/public-workspace/collection/17180185-ce4fa620-62f2-4725-a4aa-435ef16fb555?action=share&creator=17180185&active-environment=17180185-71faa960-073e-48ac-a9ee-14d626e2436c)
 - Live Demo App Base Url: https://r0k5erlfmqgf.share.zrok.io
 
 ## Project Structures
